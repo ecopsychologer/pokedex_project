@@ -71,7 +71,7 @@ RenderedText* load_rendered_text(char*** data, TTF_Font* font, SDL_Color color, 
         // make a string for current pokemon
         char pokemon_string[MAX_FIELD_SIZE];
         if (i == 0) {
-            sprintf(pokemon_string, " ID No. - Name\n");
+            sprintf(pokemon_string, " ID No. gitwgi- Name\n");
         } else {
             sprintf(pokemon_string, " * No. %s: %s \n", data[i][0], data[i][1]);
         }
