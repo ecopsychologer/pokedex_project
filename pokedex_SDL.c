@@ -71,7 +71,7 @@ RenderedText* load_rendered_text(char*** data, TTF_Font* font, SDL_Color color, 
         // make a string for current pokemon
         char pokemon_string[MAX_FIELD_SIZE];
         if (i == 0) {
-            sprintf(pokemon_string, " ID No. gitwgi- Name\n");
+            sprintf(pokemon_string, " ID No. - Name\n");
         } else {
             sprintf(pokemon_string, " * No. %s: %s \n", data[i][0], data[i][1]);
         }
@@ -101,6 +101,7 @@ void free_rendered_text(RenderedText* rendered_text) {
 int main(int argc, char* argv[]) {
     // create an int to track our position in list
     int scroll_offset = 0;
+    int cursor_position = 1; // start at pos 1 because the file has a header row
 
     // Load Pokemon data
     char*** data = load_data();
@@ -124,8 +125,17 @@ int main(int argc, char* argv[]) {
 
     // Create a color for our text
     SDL_Color color = {255, 255, 255, 255};
+    // and a highlight color
+    SDL_Color highlight_color = {55, 55, 220, 255};
 
     RenderedText* rendered_text = load_rendered_text(data, font, color, renderer);
+
+    // create a rectangular surface and texture for highlighting
+    SDL_Surface* highlight_surface = SDL_CreateRGBSurface(0,800,30,32,0,0,0,0);
+    // fill this rectangle with blue
+    SDL_FillRect(highlight_surface, NULL, SDL_MapRGB(highlight_surface->format,25,55,180));
+    // create the texture
+    SDL_Texture* highlight_texture = SDL_CreateTextureFromSurface(renderer, highlight_surface);
 
     // infinite for loop to handle drawing of the surface/screen
     for (;;) {
@@ -138,10 +148,12 @@ int main(int argc, char* argv[]) {
             } else if (event.type == SDL_KEYDOWN) {
                 if (event.key.keysym.sym == SDLK_UP) {
                     // scroll up
-                    if (scroll_offset > 0) scroll_offset--;
+                    if (cursor_position > 1) cursor_position--; // make sure the cursor stays off the header
+                    if (scroll_offset > 0 && cursor_position < scroll_offset + MAX_DISPLAY_ROWS / 2) scroll_offset--;
                 } else if (event.key.keysym.sym == SDLK_DOWN) {
                     // scroll down
-                    if (scroll_offset < NUM_ROWS - MAX_DISPLAY_ROWS) scroll_offset++;
+                    if (cursor_position < NUM_ROWS - 1) cursor_position++; // stay within the list
+                    if (scroll_offset < NUM_ROWS - MAX_DISPLAY_ROWS && cursor_position > scroll_offset + MAX_DISPLAY_ROWS / 2) scroll_offset++;
                 }
             }
         }
@@ -152,6 +164,11 @@ int main(int argc, char* argv[]) {
 
         // render loop to render the pokemon names and ID's
         for(int i = scroll_offset; i < scroll_offset + MAX_DISPLAY_ROWS && i < NUM_ROWS; i++) {
+            if (i == cursor_position) {
+                SDL_Rect highlight_rect = {40, 10 + (i - scroll_offset)*30,720,30};
+                SDL_RenderCopy(renderer, highlight_texture, NULL, &highlight_rect);
+            }
+
             SDL_Rect rect = {50, 10 + (i - scroll_offset)*30, rendered_text[i].surface->w, rendered_text[i].surface->h};
             SDL_RenderCopy(renderer, rendered_text[i].texture, NULL, &rect);
         }
@@ -165,6 +182,8 @@ done:
     // Clean up
     free_rendered_text(rendered_text);
     TTF_CloseFont(font);
+    SDL_FreeSurface(highlight_surface);
+    SDL_DestroyTexture(highlight_texture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     TTF_Quit();
