@@ -17,6 +17,7 @@
 #define NUM_COLS 35
 #define MAX_DISPLAY_ROWS 20
 #define TARGET_FRAME_RATE 60
+#define POKEDEX_ENTRY_SIZE 20000
 
 typedef struct {
     SDL_Surface* surface;
@@ -31,7 +32,7 @@ typedef struct {
 
 char*** load_data() {
     // open the CSV file
-    FILE* fp = fopen("FirstGenPokemon.csv", "r");
+    FILE* fp = fopen("FirstGenPokemonV2.csv", "r");
     if (!fp) {
         printf("Can't open pokemon data file\n");
         exit(-1);
@@ -143,6 +144,46 @@ RenderedText render_text(char* string,TTF_Font* font, SDL_Color color, SDL_Rende
 }
 
 /*
+ * 
+ * Splits strings into lines
+ * 
+ */
+char** split_string_into_lines(char* string, int* line_count) {
+    // count how many lines we have
+    int count = 1; // at least 1 line, presumably
+    for (int i = 0; string[i]; i++) {
+        if (string[i] == '\n') {
+            count++;
+        }
+    }
+
+    // allocate memory for the lines
+    // lines the 2D array to hold strings
+    char** lines = malloc(sizeof(char*) * count);
+
+    // make a copy of the original string before tokenizing
+    char* str = strdup(string);
+
+    // now split the string into individual lines, by delimiter \n
+    char* line = strtok(str, "\n");
+    for (int i = 0; i < count; i++) {
+        if (line == NULL) { // if line is null, just fill with a space
+            lines[i] = strdup(" ");
+            line = strtok(NULL, "\n");
+        } else {
+            lines[i] = strdup(line); // ith position in array gets the first line of chars
+            line = strtok(NULL, "\n"); // "increment" line
+        }
+    }
+
+    free(str);
+
+    *line_count = count;
+    return lines;
+}
+
+
+/*
  *
  * Main Function
  * 
@@ -250,16 +291,35 @@ int main(int argc, char* argv[]) {
           */
 
         for(int i = scroll_offset; i < scroll_offset + MAX_DISPLAY_ROWS && i < NUM_ROWS; i++) {
-            if (single_pokemon_view && selected_position >= 1) {
+            if (single_pokemon_view && selected_position >= 1 && selected_position < NUM_ROWS) {
                 // display the selected pokemon's info
-                char info_string[MAX_FIELD_SIZE];
-                sprintf(info_string, "Information about %s:\nType: %s\nHP: %s\nAttack: %s\n...", data[selected_position][1], data[selected_position][2], data[selected_position][3], data[selected_position][4]);
-                RenderedText info_text = render_text(info_string, font, color, renderer);
-                SDL_Rect rect = {50, 50, info_text.surface->w, info_text.surface->h};
-                SDL_RenderCopy(renderer, info_text.texture, NULL, &rect);
+                char info_string[POKEDEX_ENTRY_SIZE] = "";
+                sprintf(info_string, "Pokemon No. %s: %s\n", data[selected_position][0], data[selected_position][1]);
+                for (int k = 2; k < NUM_COLS; k++) { // start at 2 to ignore numbers & names columns
+                    // print the header from row 0 and then the data from row (choice) and filter with if
+                    if(((0 <= k) && (k <= 6)) || (k == 9) || (11 <= k) && (k <= 32)) {
+                        if((k == 5) || (k == 12) || (k == 18)) {
+                            // break up the long text block
+                            sprintf(info_string + strlen(info_string), "\n");
+                        }
+                        //printf("(p = %d)", p);
+                        sprintf(info_string + strlen(info_string),"%s: %s \n", data[0][k], data[selected_position][k]);
+                    }
+                }
 
-                SDL_FreeSurface(info_text.surface);
-                SDL_DestroyTexture(info_text.texture);
+                int line_count;
+                char** lines = split_string_into_lines(info_string, &line_count);
+
+                for (int j = 0; j < line_count; j++) {
+                    RenderedText info_text = render_text(lines[j], font, color, renderer);
+                    SDL_Rect rect = {50, 50 + j * info_text.surface->h, info_text.surface->w, info_text.surface->h};
+                    SDL_RenderCopy(renderer, info_text.texture, NULL, &rect);
+
+                    SDL_FreeSurface(info_text.surface);
+                    SDL_DestroyTexture(info_text.texture);
+                }
+
+                free(lines);
 
                 // break out of the loop after rendering data
                 break;
