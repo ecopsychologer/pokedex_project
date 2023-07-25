@@ -171,7 +171,7 @@ int main(int argc, char* argv[]) {
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, 0);
 
     // Create a font
-    TTF_Font* font = TTF_OpenFont("SummerPixel.ttf", 24);
+    TTF_Font* font = TTF_OpenFont("PixelOperatorHB8.ttf", 24);
     if (font == NULL) {
         printf("Failed to load font: %s\n", TTF_GetError());
         exit(1);
@@ -273,8 +273,6 @@ int main(int argc, char* argv[]) {
                 SDL_Rect rect = {50, 10 + (i - scroll_offset)*30, rendered_text[i].surface->w, rendered_text}
             }
         }
-        //SDL_Rect rect = {50, 10 + (i - scroll_offset)*30, rendered_text[i].surface->w, rendered_text[i].surface->h};
-        SDL_RenderCopy(renderer, rendered_text[i].texture, NULL, &rect);
 
         // update the screen with the rendering stored in memory that was just rendered
         SDL_RenderPresent(renderer);
