@@ -270,13 +270,14 @@ int main(int argc, char* argv[]) {
                     SDL_Rect highlight_rect = {40, 10 + (i - scroll_offset)*30,720,30};
                     SDL_RenderCopy(renderer, highlight_texture, NULL, &highlight_rect);
                 }
-                SDL_Rect rect = {50, 10 + (i - scroll_offset)*30, rendered_text[i].surface->w, rendered_text}
+                SDL_Rect rect = {50, 10 + (i - scroll_offset)*30, rendered_text[i].surface->w, rendered_text[i].surface->h};
+                // copy a portion of the texture to the current rendering target
+                SDL_RenderCopy(renderer, rendered_text[i].texture, NULL, &rect);
             }
         }
 
         // update the screen with the rendering stored in memory that was just rendered
         SDL_RenderPresent(renderer);
-
         // delay to limit frame rate to 60 FPS
         SDL_Delay(1000 / TARGET_FRAME_RATE);
     }
