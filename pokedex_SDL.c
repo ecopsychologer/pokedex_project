@@ -9,6 +9,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #define MAX_ROW_SIZE 5000
 #define MAX_FIELD_SIZE 200
@@ -21,6 +22,12 @@ typedef struct {
     SDL_Surface* surface;
     SDL_Texture* texture;
 } RenderedText;
+
+/*
+ *
+ * Loading Data
+ * 
+ */
 
 char*** load_data() {
     // open the CSV file
@@ -63,6 +70,12 @@ void free_data(char*** data) {
     free(data);
 }
 
+/*
+ *
+ * SDL Rendering into an Array
+ * 
+ */
+
 RenderedText* load_rendered_text(char*** data, TTF_Font* font, SDL_Color color, SDL_Renderer* renderer) {
     // memory allocation for the text to the size of the rendered text (x) by the number of rows (y)
     RenderedText* rendered_text = malloc(sizeof(RenderedText) * NUM_ROWS);
@@ -98,10 +111,51 @@ void free_rendered_text(RenderedText* rendered_text) {
     free(rendered_text);
 }
 
+/*
+ * 
+ * Render Text
+ * 
+ * This function takes in a string,
+ * a font, a color, and a renderer,
+ * and creates a surface and a
+ * texture for that text string. It
+ * returns a 'RenderedText' struct that
+ * contains the surface and the
+ * texture.
+ * 
+ */
+RenderedText render_text(char* string,TTF_Font* font, SDL_Color color, SDL_Renderer* renderer) {
+    RenderedText render_text;
+
+    // create a surface
+    render_text.surface = TTF_RenderText_Solid(font, string, color);
+    if (render_text.surface == NULL) {
+        printf("Text rendering failed, error: %s\n", TTF_GetError());
+    }
+
+    // create a texture
+    render_text.texture = SDL_CreateTextureFromSurface(renderer, render_text.surface);
+    if (render_text.texture == NULL ) {
+        printf("Failed to create texture : %s\n", SDL_GetError());
+    }
+
+    return render_text;
+}
+
+/*
+ *
+ * Main Function
+ * 
+ */
 int main(int argc, char* argv[]) {
     // create an int to track our position in list
     int scroll_offset = 0;
-    int cursor_position = 1; // start at pos 1 because the file has a header row
+    // cursor position tracker - starts at pos 1 because the file has a header row
+    int cursor_position = 1;
+    // selected position, -1 means no selection yet
+    int selected_position = -1;
+    // variable to track whether we're viewing one pokemon or not
+    bool single_pokemon_view = false;
 
     // Load Pokemon data
     char*** data = load_data();
@@ -139,21 +193,47 @@ int main(int argc, char* argv[]) {
 
     // infinite for loop to handle drawing of the surface/screen
     for (;;) {
-        // event loop here to handle events
+
+        /*
+         *
+         * Event Loop
+         * 
+         */
+
         SDL_Event event;
+
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {
                 // Quit the application
                 goto done;
             } else if (event.type == SDL_KEYDOWN) {
+                // up arrow
                 if (event.key.keysym.sym == SDLK_UP) {
                     // scroll up
-                    if (cursor_position > 1) cursor_position--; // make sure the cursor stays off the header
-                    if (scroll_offset > 0 && cursor_position < scroll_offset + MAX_DISPLAY_ROWS / 2) scroll_offset--;
-                } else if (event.key.keysym.sym == SDLK_DOWN) {
+                    // make sure the cursor stays off the header
+                    if (cursor_position > 1) { 
+                        cursor_position--;
+                    }
+                    if (scroll_offset > 0 && cursor_position < scroll_offset + MAX_DISPLAY_ROWS / 2) {
+                        scroll_offset--;
+                    }
+                } 
+                // down arrow
+                else if (event.key.keysym.sym == SDLK_DOWN) {
                     // scroll down
                     if (cursor_position < NUM_ROWS - 1) cursor_position++; // stay within the list
                     if (scroll_offset < NUM_ROWS - MAX_DISPLAY_ROWS && cursor_position > scroll_offset + MAX_DISPLAY_ROWS / 2) scroll_offset++;
+                } 
+                // enter/return
+                else if (event.key.keysym.sym == SDLK_RETURN) {
+                    // user selected current row
+                    selected_position = cursor_position;
+                    single_pokemon_view = true;
+                }
+                // escape
+                else if (event.key.keysym.sym == SDLK_ESCAPE) {
+                    // user wants to go back
+                    single_pokemon_view = false;
                 }
             }
         }
@@ -162,16 +242,40 @@ int main(int argc, char* argv[]) {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderClear(renderer);
 
-        // render loop to render the pokemon names and ID's
-        for(int i = scroll_offset; i < scroll_offset + MAX_DISPLAY_ROWS && i < NUM_ROWS; i++) {
-            if (i == cursor_position) {
-                SDL_Rect highlight_rect = {40, 10 + (i - scroll_offset)*30,720,30};
-                SDL_RenderCopy(renderer, highlight_texture, NULL, &highlight_rect);
-            }
+         /*
+          *
+          * render loop to render the pokemon
+          * names and ID's
+          * 
+          */
 
-            SDL_Rect rect = {50, 10 + (i - scroll_offset)*30, rendered_text[i].surface->w, rendered_text[i].surface->h};
-            SDL_RenderCopy(renderer, rendered_text[i].texture, NULL, &rect);
+        for(int i = scroll_offset; i < scroll_offset + MAX_DISPLAY_ROWS && i < NUM_ROWS; i++) {
+            if (single_pokemon_view && selected_position >= 1) {
+                // display the selected pokemon's info
+                char info_string[MAX_FIELD_SIZE];
+                sprintf(info_string, "Information about %s:\nType: %s\nHP: %s\nAttack: %s\n...", data[selected_position][1], data[selected_position][2], data[selected_position][3], data[selected_position][4]);
+                RenderedText info_text = render_text(info_string, font, color, renderer);
+                SDL_Rect rect = {50, 50, info_text.surface->w, info_text.surface->h};
+                SDL_RenderCopy(renderer, info_text.texture, NULL, &rect);
+
+                SDL_FreeSurface(info_text.surface);
+                SDL_DestroyTexture(info_text.texture);
+
+                // break out of the loop after rendering data
+                break;
+            }
+            else {
+                // render the list of pokemon
+                if (i == cursor_position) {
+                    SDL_Rect highlight_rect = {40, 10 + (i - scroll_offset)*30,720,30};
+                    SDL_RenderCopy(renderer, highlight_texture, NULL, &highlight_rect);
+                }
+                SDL_Rect rect = {50, 10 + (i - scroll_offset)*30, rendered_text[i].surface->w, rendered_text}
+            }
         }
+        //SDL_Rect rect = {50, 10 + (i - scroll_offset)*30, rendered_text[i].surface->w, rendered_text[i].surface->h};
+        SDL_RenderCopy(renderer, rendered_text[i].texture, NULL, &rect);
+
         // update the screen with the rendering stored in memory that was just rendered
         SDL_RenderPresent(renderer);
 
