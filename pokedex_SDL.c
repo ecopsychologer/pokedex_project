@@ -1,6 +1,6 @@
 /**
  * 
- * Build: gcc -o pokedex pokedex.c -lSDL2 -lSDL2_ttf
+ * Build: gcc -o pokedex pokedex_SDL.c -lSDL2 -lSDL2_ttf
  * 
 **/
 
