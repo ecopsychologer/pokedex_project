@@ -1,5 +1,5 @@
-# Another C Pokedex Project!
-I'm working on a pokedex in c to make use of a 2" screen I have. I'm hoping that this application will, in time, be able to take a .CSV file input to populate a pokemon data array, then allow the user to scroll a list of these pokemon and click on one to see more information.
+# Another Pokedex Project!
+I'm working on a Pokedex in C to make use of a 2" screen I have. I'm hoping that this application will, in time, be able to take a .CSV file input to populate a pokemon data array, then allow the user to scroll a list of these pokemon and click on one to see more information.
 As is mentioned at the top of pokedex_SDL.c, I built this with 
 ```
 gcc -o pokedex pokedex_SDL.c -lSDL2 -lSDL2_ttf
