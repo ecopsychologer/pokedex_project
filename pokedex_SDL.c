@@ -12,12 +12,15 @@
 #include <stdbool.h>
 
 #define MAX_ROW_SIZE 5000
-#define MAX_FIELD_SIZE 200
+#define MAX_FIELD_SIZE 400
 #define NUM_ROWS 152
 #define NUM_COLS 35
 #define MAX_DISPLAY_ROWS 20
 #define TARGET_FRAME_RATE 60
 #define POKEDEX_ENTRY_SIZE 20000
+#define WINDOW_WIDTH 800
+#define WINDOW_HEIGHT 600
+#define FONT_SIZE 24
 
 typedef struct {
     SDL_Surface* surface;
@@ -85,9 +88,9 @@ RenderedText* load_rendered_text(char*** data, TTF_Font* font, SDL_Color color, 
         // make a string for current pokemon
         char pokemon_string[MAX_FIELD_SIZE];
         if (i == 0) {
-            sprintf(pokemon_string, " ID No. - Name\n");
+            sprintf(pokemon_string, " ID No. - Name");
         } else {
-            sprintf(pokemon_string, " * No. %s: %s \n", data[i][0], data[i][1]);
+            sprintf(pokemon_string, " * No. %s: %s", data[i][0], data[i][1]);
         }
 
         // create a surface in the rendered text array
@@ -125,7 +128,8 @@ void free_rendered_text(RenderedText* rendered_text) {
  * texture.
  * 
  */
-RenderedText render_text(char* string,TTF_Font* font, SDL_Color color, SDL_Renderer* renderer) {
+RenderedText render_text(char* string, TTF_Font* font, SDL_Color color, SDL_Renderer* renderer) {
+
     RenderedText render_text;
 
     // create a surface
@@ -206,13 +210,13 @@ int main(int argc, char* argv[]) {
     TTF_Init();
 
     // Create a window
-    SDL_Window *window = SDL_CreateWindow("Pokedex", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 800, 600, 0);
+    SDL_Window *window = SDL_CreateWindow("Pokedex", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, 0);
 
     // Create a renderer (this is what we'll draw to)
     SDL_Renderer *renderer = SDL_CreateRenderer(window, -1, 0);
 
     // Create a font
-    TTF_Font* font = TTF_OpenFont("PixelOperatorHB8.ttf", 24);
+    TTF_Font* font = TTF_OpenFont("PixelOperatorHB8.ttf", FONT_SIZE);
     if (font == NULL) {
         printf("Failed to load font: %s\n", TTF_GetError());
         exit(1);
@@ -254,6 +258,9 @@ int main(int argc, char* argv[]) {
                     // make sure the cursor stays off the header
                     if (cursor_position > 1) { 
                         cursor_position--;
+                        if (selected_position > 1) {
+                            selected_position--;
+                        }
                     }
                     if (scroll_offset > 0 && cursor_position < scroll_offset + MAX_DISPLAY_ROWS / 2) {
                         scroll_offset--;
@@ -262,7 +269,12 @@ int main(int argc, char* argv[]) {
                 // down arrow
                 else if (event.key.keysym.sym == SDLK_DOWN) {
                     // scroll down
-                    if (cursor_position < NUM_ROWS - 1) cursor_position++; // stay within the list
+                    if (cursor_position < NUM_ROWS - 1) {
+                        cursor_position++; // stay within the list
+                        if (selected_position < NUM_ROWS - 1) {
+                            selected_position++;
+                        }
+                    }
                     if (scroll_offset < NUM_ROWS - MAX_DISPLAY_ROWS && cursor_position > scroll_offset + MAX_DISPLAY_ROWS / 2) scroll_offset++;
                 } 
                 // enter/return
@@ -291,6 +303,8 @@ int main(int argc, char* argv[]) {
           */
 
         for(int i = scroll_offset; i < scroll_offset + MAX_DISPLAY_ROWS && i < NUM_ROWS; i++) {
+
+            // Single Pokemon View Rendering
             if (single_pokemon_view && selected_position >= 1 && selected_position < NUM_ROWS) {
                 // display the selected pokemon's info
                 char info_string[POKEDEX_ENTRY_SIZE] = "";
@@ -307,9 +321,11 @@ int main(int argc, char* argv[]) {
                     }
                 }
 
+                // trying to do a little functional fix to make new lines work with SDL by typing '\n'
                 int line_count;
                 char** lines = split_string_into_lines(info_string, &line_count);
 
+                // The actual rendering of the information from the selected pokemon's line
                 for (int j = 0; j < line_count; j++) {
                     RenderedText info_text = render_text(lines[j], font, color, renderer);
                     SDL_Rect rect = {50, 50 + j * info_text.surface->h, info_text.surface->w, info_text.surface->h};
@@ -323,7 +339,10 @@ int main(int argc, char* argv[]) {
 
                 // break out of the loop after rendering data
                 break;
-            }
+            } 
+            // end of Single Pokemon View Rendering
+
+            // Full Pokemon List View Rendering
             else {
                 // render the list of pokemon
                 if (i == cursor_position) {
