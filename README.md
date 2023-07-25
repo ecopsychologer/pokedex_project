@@ -11,3 +11,8 @@ Which creates a `pokedex` executable that can be run from the command line with
 To begin with, I am only including the pokemon from this file: https://www.kaggle.com/datasets/dizzypanda/gen-1-pokemon
 
 Also I found a CC0 font that I enjoy, which is in this repo.
+
+The `pokedex.c` is what compiles into the `CLI_Kanto_Pokedex` which is run with `./CLI_Kanto_Pokedex` and compiled with 
+```
+gcc -o CLI_Kanto_Pokedex pokedex.c
+```
