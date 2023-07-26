@@ -12,7 +12,7 @@
 #include <stdbool.h>
 
 #define MAX_ROW_SIZE 5000
-#define MAX_FIELD_SIZE 400
+#define MAX_FIELD_SIZE 200
 #define NUM_ROWS 152
 #define NUM_COLS 35
 #define MAX_DISPLAY_ROWS 20
@@ -26,6 +26,41 @@ typedef struct {
     SDL_Surface* surface;
     SDL_Texture* texture;
 } RenderedText;
+
+typedef struct {
+    int id;                         // 0
+    char name[MAX_FIELD_SIZE];      // 1
+    int types;                      // 2
+    char type1[MAX_FIELD_SIZE];     // 3
+    char type2[MAX_FIELD_SIZE];     // 4
+    float height;                   // 5
+    float weight;                   // 6
+    int capture_rate;               // 9
+    char exp_speed[MAX_FIELD_SIZE]; // 11
+    int base_total;                 // 12
+    int hp;                         // 13
+    int attack;                     // ...
+    int defense;                    // ...
+    int special;                    // 
+    int speed;                      // 
+    float normal_dmg;               // 
+    float fire_dmg;                 // 
+    float water_dmg;                // 
+    float electric_dmg;             // 
+    float grass_dmg;                // 
+    float ice_dmg;                  // 
+    float fight_dmg;                // 
+    float poison_dmg;               //  
+    float ground_dmg;               // 
+    float flying_dmg;               // 
+    float psychic_dmg;              // 
+    float bug_dmg;                  // 
+    float rock_dmg;                 // 
+    float ghost_dmg;                // 
+    float dragon_dmg;               // ...
+    int evolutions;                 // ...
+    bool legendary;                 // 34
+} Pokemon
 
 /*
  *
@@ -186,6 +221,55 @@ char** split_string_into_lines(char* string, int* line_count) {
     return lines;
 }
 
+/* 
+ * 
+ * Load Pokemon into struct
+ * int -> atoi()
+ * str -> strncpy()
+ * float -> atof()
+ * 
+ */
+Pokemon load_pokemon(char*** data, int index) {
+    Pokemon pokemon;
+    // load `data` array line into pokemon data class
+    pokemon.id = atoi(data[index][0]);
+    strncpy(pokemon.name, data[index][1], MAX_FIELD_SIZE);
+    pokemon.types = atoi(data[index][2]);
+    strncpy(pokemon.type1,data[index][3], MAX_FIELD_SIZE);
+    strncpy(pokemon.type2,data[index][4], MAX_FIELD_SIZE);
+    pokemon.height = atof(data[index][5]);
+    pokemon.weight = atof(data[index][6]);
+    pokemon.capture_rate = atoi(data[index][9]);
+    strncpy(pokemon.exp_speed,data[index][11],MAX_FIELD_SIZE);
+    pokemon.base_total = atoi(data[index][12]);
+    pokemon.hp = atoi(data[index][13]);
+    pokemon.attack = atoi(data[index][14]);
+    pokemon.defense = atoi(data[index][15]);
+    pokemon.special = atoi(data[index][16]);
+    pokemon.speed = atoi(data[index][17]);
+    pokemon.normal_dmg = atof(data[index][18]);
+    pokemon.fire_dmg = atof(data[index][19]);
+    pokemon.water_dmg = atof(data[index][20]);
+    pokemon.electric_dmg = atof(data[index][21]);
+    pokemon.grass_dmg = atof(data[index][22]);
+    pokemon.ice_dmg = atof(data[index][23]);
+    pokemon.fight_dmg = atof(data[index][24]);
+    pokemon.poison_dmg = atof(data[index][25]);
+    pokemon.ground_dmg = atof(data[ined][26]);
+    pokemon.flying_dmg = atof(data[index][27]);
+    pokemon.psychic_dmg = atof(data[index][28]);
+    pokemon.bug_dmg = atof(data[index][29]);
+    pokemon.rock_dmg = atof(data[index][30]);
+    pokemon.ghost_dmg = atof(data[index][31]);
+    pokemon.dragon_dmg = atof(data[index][32]);
+    pokemon.evolutions = atoi(data[index][33]);
+    // unsure if the double negation does indeed turn it to bool
+    // so check here if there are issues
+    pokemon.legendary = !!atoi(data[index][34]); 
+
+    // finally,
+    return pokemon;
+}
 
 /*
  *
@@ -303,20 +387,46 @@ int main(int argc, char* argv[]) {
           */
 
         for(int i = scroll_offset; i < scroll_offset + MAX_DISPLAY_ROWS && i < NUM_ROWS; i++) {
-
+            
             // Single Pokemon View Rendering
             if (single_pokemon_view && selected_position >= 1 && selected_position < NUM_ROWS) {
+                // load the selected pokemon
+                Pokemon pokemon = load_pokemon(data, selected_position);
+
                 // display the selected pokemon's info
                 char info_string[POKEDEX_ENTRY_SIZE] = "";
-                sprintf(info_string, "Pokemon No. %s: %s\n", data[selected_position][0], data[selected_position][1]);
+                sprintf(info_string, "Pokemon No. %s: %s\n", pokemon.id, pokemon.name);
+                
+                // add a new line
+                sprintf(info_string + strlen(info_string), " \n");
+
                 for (int k = 2; k < NUM_COLS; k++) { // start at 2 to ignore numbers & names columns
                     // print the header from row 0 and then the data from row (choice) and filter with if
-                    if(((0 <= k) && (k <= 6)) || (k == 9) || (11 <= k) && (k <= 32)) {
-                        if((k == 5) || (k == 12) || (k == 18)) {
-                            // break up the long text block
-                            sprintf(info_string + strlen(info_string), "\n");
+                    if ((2 <= k) && (k <= 6)) {
+                        if (strcmp(data[selected_position][k], "1") == 0) {
+                            // format the 'type' string
+                            sprintf(info_string + strlen(info_string),"%s Type: %s    | %s \n", data[selected_position][k], data[selected_position][k+1], data[selected_position][k+2]);
+                            k = k + 3; // increment k to skip the next columns of type
+                        } else  {
+                            // format the 'type' string
+                            sprintf(info_string + strlen(info_string),"%s %s: %s    | %s \n", data[selected_position][k], data[0][k], data[selected_position][k+1], data[selected_position][k+2]);
+                            k = k + 3; // increment k to skip the next columns of type
                         }
-                        //printf("(p = %d)", p);
+
+                        // format physical stats
+                        sprintf(info_string + strlen(info_string),"%s: %s    | %s: %s \n", data[0][k], data[selected_position][k], data[0][k+1], data[selected_position][k+1]); 
+                        k++;
+
+                        // add a new line
+                        sprintf(info_string + strlen(info_string), " \n");
+                    }
+                    if (k == 9) {
+                        sprintf(info_string + strlen(info_string),"%s: %s \n", data[0][k], data[selected_position][k]);
+                        
+                        // add a new line
+                        sprintf(info_string + strlen(info_string), " \n");
+                    }
+                    if ((11 <= k) && (k <= 32)) {
                         sprintf(info_string + strlen(info_string),"%s: %s \n", data[0][k], data[selected_position][k]);
                     }
                 }
