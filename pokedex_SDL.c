@@ -60,7 +60,7 @@ typedef struct {
     float dragon_dmg;               // ...
     int evolutions;                 // ...
     bool legendary;                 // 34
-} Pokemon
+} Pokemon;
 
 /*
  *
@@ -255,7 +255,7 @@ Pokemon load_pokemon(char*** data, int index) {
     pokemon.ice_dmg = atof(data[index][23]);
     pokemon.fight_dmg = atof(data[index][24]);
     pokemon.poison_dmg = atof(data[index][25]);
-    pokemon.ground_dmg = atof(data[ined][26]);
+    pokemon.ground_dmg = atof(data[index][26]);
     pokemon.flying_dmg = atof(data[index][27]);
     pokemon.psychic_dmg = atof(data[index][28]);
     pokemon.bug_dmg = atof(data[index][29]);
@@ -385,52 +385,46 @@ int main(int argc, char* argv[]) {
           * names and ID's
           * 
           */
-
         for(int i = scroll_offset; i < scroll_offset + MAX_DISPLAY_ROWS && i < NUM_ROWS; i++) {
-            
+
             // Single Pokemon View Rendering
             if (single_pokemon_view && selected_position >= 1 && selected_position < NUM_ROWS) {
                 // load the selected pokemon
                 Pokemon pokemon = load_pokemon(data, selected_position);
 
-                // display the selected pokemon's info
+                // create a string to hold the pokemon's data
                 char info_string[POKEDEX_ENTRY_SIZE] = "";
-                sprintf(info_string, "Pokemon No. %s: %s\n", pokemon.id, pokemon.name);
+                // choose proper text by number of types
+                if (pokemon.types == 1) {
+                    sprintf(info_string,
+                    "Pokemon No. %d: %s\n" // pokemon number and name
+                    "%s type\n", 
+                    pokemon.id, pokemon.name, pokemon.type1);
+                } else {
+                    sprintf(info_string,
+                    "Pokemon No. %d: %s\n" // pokemon number and name
+                    "%s and %s types\n", 
+                    pokemon.id, pokemon.name, pokemon.type1, pokemon.type2);
+                }
+                sprintf(info_string + strlen(info_string),
+                " \nHeight: %.2fm and Weight: %.2fkg\n \n"
+                "Capture Rate %d \n"
+                "Exp. Gain Speed %s \n \n"
+                "HP: %d (Base Total %d)\n"
+                " Attack: %d\n"
+                " Defense: %d\n"
+                " Special: %d\n"
+                " Speed: %d\n"
+                " \n"
+                "       Damage To\n"
+                "Normal Fire Water Electric Grass\n"
+                "  %.2f   %.2f  %.2f      %.2f      %.2f\n",
+                pokemon.height, pokemon.weight, pokemon.capture_rate, pokemon.exp_speed,pokemon.hp, pokemon.base_total, pokemon.attack, pokemon.defense, pokemon.special, pokemon.speed, pokemon.normal_dmg, pokemon.fire_dmg, pokemon.water_dmg, pokemon.electric_dmg, pokemon.grass_dmg);
                 
                 // add a new line
                 sprintf(info_string + strlen(info_string), " \n");
 
-                for (int k = 2; k < NUM_COLS; k++) { // start at 2 to ignore numbers & names columns
-                    // print the header from row 0 and then the data from row (choice) and filter with if
-                    if ((2 <= k) && (k <= 6)) {
-                        if (strcmp(data[selected_position][k], "1") == 0) {
-                            // format the 'type' string
-                            sprintf(info_string + strlen(info_string),"%s Type: %s    | %s \n", data[selected_position][k], data[selected_position][k+1], data[selected_position][k+2]);
-                            k = k + 3; // increment k to skip the next columns of type
-                        } else  {
-                            // format the 'type' string
-                            sprintf(info_string + strlen(info_string),"%s %s: %s    | %s \n", data[selected_position][k], data[0][k], data[selected_position][k+1], data[selected_position][k+2]);
-                            k = k + 3; // increment k to skip the next columns of type
-                        }
-
-                        // format physical stats
-                        sprintf(info_string + strlen(info_string),"%s: %s    | %s: %s \n", data[0][k], data[selected_position][k], data[0][k+1], data[selected_position][k+1]); 
-                        k++;
-
-                        // add a new line
-                        sprintf(info_string + strlen(info_string), " \n");
-                    }
-                    if (k == 9) {
-                        sprintf(info_string + strlen(info_string),"%s: %s \n", data[0][k], data[selected_position][k]);
-                        
-                        // add a new line
-                        sprintf(info_string + strlen(info_string), " \n");
-                    }
-                    if ((11 <= k) && (k <= 32)) {
-                        sprintf(info_string + strlen(info_string),"%s: %s \n", data[0][k], data[selected_position][k]);
-                    }
-                }
-
+                // splitting the info_string into lines below
                 // trying to do a little functional fix to make new lines work with SDL by typing '\n'
                 int line_count;
                 char** lines = split_string_into_lines(info_string, &line_count);
