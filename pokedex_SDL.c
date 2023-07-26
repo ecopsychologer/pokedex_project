@@ -432,6 +432,7 @@ int main(int argc, char* argv[]) {
                 // The actual rendering of the information from the selected pokemon's line
                 for (int j = 0; j < line_count; j++) {
                     RenderedText info_text = render_text(lines[j], font, color, renderer);
+                    // here is where the text box is rendered
                     SDL_Rect rect = {50, 50 + j * info_text.surface->h, info_text.surface->w, info_text.surface->h};
                     SDL_RenderCopy(renderer, info_text.texture, NULL, &rect);
 
