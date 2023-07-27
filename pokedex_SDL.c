@@ -21,6 +21,7 @@
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
 #define FONT_SIZE 24
+#define LEFT_MARGIN 50
 
 typedef struct {
     SDL_Surface* surface;
@@ -221,6 +222,38 @@ char** split_string_into_lines(char* string, int* line_count) {
     return lines;
 }
 
+char** split_line_into_columns(char* string, int* line_count, char* delim) {
+    // count how many lines we have
+    int count = 0;
+    // point to the beginning of our string
+    char* temp = string; 
+    // point temp to the location of the delimiter
+    while ((temp = strstr(temp, delim)) != NULL) { 
+        count++; // increment count since we found a delimiter
+        temp += strlen(delim); // point temp to after the delimiter
+    }
+
+    // allocate memory for the lines
+    // lines the 2D array to hold strings
+    // count + 1 because we start with 1 line, not zero
+    char** lines = malloc(sizeof(char*) * (count + 1));
+    char* next = NULL;
+    char* curr = strdup(string); // make a copy of the string
+
+    int i = 0;
+    // next = delim location || NULL 
+    while ((next = strstr(curr, delim)) != NULL) {
+        *next = '\0'; // null at delimiter which is pointed to by next, which tells strdup where to stop the copy
+        lines[i] = strdup(curr);
+        i++;
+        curr = next + strlen(delim);
+    }
+    lines[i] = strdup(curr);
+
+    *line_count = count + 1;
+    return lines;
+}
+
 /* 
  * 
  * Load Pokemon into struct
@@ -410,16 +443,14 @@ int main(int argc, char* argv[]) {
                 " \nHeight: %.2fm and Weight: %.2fkg\n \n"
                 "Capture Rate %d \n"
                 "Exp. Gain Speed %s \n \n"
-                "HP: %d (Base Total %d)\n"
-                " Attack: %d\n"
-                " Defense: %d\n"
-                " Special: %d\n"
-                " Speed: %d\n"
+                "HP: %d !col (Base Total %d)\n"
+                " Attack: %d !col Defense: %d\n"
+                " Special: %d !col Speed: %d\n"
                 " \n"
                 "       Damage To\n"
-                "Normal Fire Water Electric Grass\n"
-                "  %.2f   %.2f  %.2f      %.2f      %.2f\n",
-                pokemon.height, pokemon.weight, pokemon.capture_rate, pokemon.exp_speed,pokemon.hp, pokemon.base_total, pokemon.attack, pokemon.defense, pokemon.special, pokemon.speed, pokemon.normal_dmg, pokemon.fire_dmg, pokemon.water_dmg, pokemon.electric_dmg, pokemon.grass_dmg);
+                "Normal !col Fire !col Water !col Electric\n"
+                "%.2f !col %.2f !col %.2f !col %.2f\n",
+                pokemon.height, pokemon.weight, pokemon.capture_rate, pokemon.exp_speed,pokemon.hp, pokemon.base_total, pokemon.attack, pokemon.defense, pokemon.special, pokemon.speed, pokemon.normal_dmg, pokemon.fire_dmg, pokemon.water_dmg, pokemon.electric_dmg);
                 
                 // add a new line
                 sprintf(info_string + strlen(info_string), " \n");
@@ -431,13 +462,22 @@ int main(int argc, char* argv[]) {
 
                 // The actual rendering of the information from the selected pokemon's line
                 for (int j = 0; j < line_count; j++) {
-                    RenderedText info_text = render_text(lines[j], font, color, renderer);
-                    // here is where the text box is rendered
-                    SDL_Rect rect = {50, 50 + j * info_text.surface->h, info_text.surface->w, info_text.surface->h};
-                    SDL_RenderCopy(renderer, info_text.texture, NULL, &rect);
+                    int split_count; // how many columns there are
+                    // columns now holds each column in an array
+                    char** columns = split_line_into_columns(lines[j], &split_count, "!col");
 
-                    SDL_FreeSurface(info_text.surface);
-                    SDL_DestroyTexture(info_text.texture);
+                    // here is where the text box is rendered
+
+                    for (int k = 0; k < split_count; k++) {
+                        // int column_buffer = (k > 0) ? 50 : 0;
+                        RenderedText cols = render_text(columns[k], font, color, renderer);
+                        // the first box is our x position, which is what gets changed for the columns
+                        SDL_Rect rect = {LEFT_MARGIN - LEFT_MARGIN*k + k*WINDOW_WIDTH/split_count, 50 + j * cols.surface->h, cols.surface->w, cols.surface->h};
+                        SDL_RenderCopy(renderer, cols.texture, NULL, &rect);
+                        SDL_FreeSurface(cols.surface);
+                        SDL_DestroyTexture(cols.texture);
+                    }
+                    free(columns);
                 }
 
                 free(lines);
