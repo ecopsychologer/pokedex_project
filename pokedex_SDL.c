@@ -22,6 +22,7 @@
 #define WINDOW_HEIGHT 600
 #define FONT_SIZE 24
 #define LEFT_MARGIN 50
+#define SPV_Y_OFFSET 20
 
 typedef struct {
     SDL_Surface* surface;
@@ -447,10 +448,22 @@ int main(int argc, char* argv[]) {
                 " Attack: %d !col Defense: %d\n"
                 " Special: %d !col Speed: %d\n"
                 " \n"
-                "       Damage To\n"
-                "Normal !col Fire !col Water !col Electric\n"
-                "%.2f !col %.2f !col %.2f !col %.2f\n",
-                pokemon.height, pokemon.weight, pokemon.capture_rate, pokemon.exp_speed,pokemon.hp, pokemon.base_total, pokemon.attack, pokemon.defense, pokemon.special, pokemon.speed, pokemon.normal_dmg, pokemon.fire_dmg, pokemon.water_dmg, pokemon.electric_dmg);
+                "Damage To\n"
+                " Normal !col Fire !col Water !col Electric\n"
+                " %.2f !col %.2f !col %.2f !col %.2f\n"
+                " Grass !col Ice !col Fight !col Poison\n"
+                " %.2f !col %.2f !col %.2f !col %.2f\n"
+                " Ground !col Flying !col Psychic !col  Bug\n"
+                " %.2f !col %.2f !col %.2f !col %.2f\n"
+                " Rock !col Ghost !col Dragon\n"
+                " %.2f !col %.2f !col %.2f\n \n"
+                "Number of Evolutions: %d\n",
+                pokemon.height, pokemon.weight, pokemon.capture_rate, pokemon.exp_speed,pokemon.hp, pokemon.base_total, pokemon.attack, pokemon.defense, pokemon.special, pokemon.speed, pokemon.normal_dmg, pokemon.fire_dmg, pokemon.water_dmg, pokemon.electric_dmg, pokemon.grass_dmg, pokemon.ice_dmg, pokemon.fight_dmg, pokemon.poison_dmg, pokemon.ground_dmg, pokemon.flying_dmg, pokemon.psychic_dmg, pokemon.bug_dmg, pokemon.rock_dmg, pokemon.ghost_dmg, pokemon.dragon_dmg, pokemon.evolutions);
+                if (pokemon.legendary) {
+                    sprintf(info_string + strlen(info_string), "This is a Legendary Pokemon!");
+                } else {
+                    sprintf(info_string + strlen(info_string), "This is not a Legendary Pokemon.");
+                }
                 
                 // add a new line
                 sprintf(info_string + strlen(info_string), " \n");
@@ -472,7 +485,7 @@ int main(int argc, char* argv[]) {
                         // int column_buffer = (k > 0) ? 50 : 0;
                         RenderedText cols = render_text(columns[k], font, color, renderer);
                         // the first box is our x position, which is what gets changed for the columns
-                        SDL_Rect rect = {LEFT_MARGIN - LEFT_MARGIN*k + k*WINDOW_WIDTH/split_count, 50 + j * cols.surface->h, cols.surface->w, cols.surface->h};
+                        SDL_Rect rect = {LEFT_MARGIN - LEFT_MARGIN*k + k*WINDOW_WIDTH/split_count, SPV_Y_OFFSET + j * cols.surface->h, cols.surface->w, cols.surface->h};
                         SDL_RenderCopy(renderer, cols.texture, NULL, &rect);
                         SDL_FreeSurface(cols.surface);
                         SDL_DestroyTexture(cols.texture);
