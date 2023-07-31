@@ -6,6 +6,7 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_ttf.h>
+#include <SDL2/SDL_image.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -324,8 +325,17 @@ int main(int argc, char* argv[]) {
     char*** data = load_data();
 
     // Initialize SDL
-    SDL_Init(SDL_INIT_VIDEO);
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
+        return -1;
+    }
     TTF_Init();
+
+    int imgFlags = IMG_INIT_PNG;
+    if (!(IMG_Init(imgFlags) & imgFlags)) {
+        printf("SDL_image could not initialize! SDL_image Error: %s\n", IMG_GetError());
+        return -1;
+    }
 
     // Create a window
     SDL_Window *window = SDL_CreateWindow("Pokedex", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH, WINDOW_HEIGHT, 0);
@@ -343,7 +353,7 @@ int main(int argc, char* argv[]) {
     // Create a color for our text
     SDL_Color color = {255, 255, 255, 255};
     // and a highlight color
-    SDL_Color highlight_color = {55, 55, 220, 255};
+    SDL_Color highlight_color = {255, 55, 55, 255};
 
     RenderedText* rendered_text = load_rendered_text(data, font, color, renderer);
 
