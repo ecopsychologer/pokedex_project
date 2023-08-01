@@ -418,14 +418,19 @@ int main(int argc, char* argv[]) {
         } else {
             sprintf(pokenum, "%d", i);
         }
-        //for (int j = 1; j <= 2; j++) {            'for'... a later date
         char filename[100];
         sprintf(filename, "resources/full_pic/pokemon_%s_1.png", pokenum);
         SDL_Surface* temp_surface = IMG_Load(filename);
         full_pics[i] = SDL_CreateTextureFromSurface(renderer, temp_surface);
         SDL_FreeSurface(temp_surface);
-        //}
     }
+
+    // make a circle
+    SDL_Texture* circle;
+    char filename[100];
+    sprintf(filename, "resources/misc/circle2.png");
+    SDL_Surface* temp_surface = IMG_Load(filename);
+    circle = SDL_CreateTextureFromSurface(renderer, temp_surface);
 
     // infinite for loop to handle drawing of the surface/screen
     for (;;) {
@@ -458,7 +463,7 @@ int main(int argc, char* argv[]) {
                     }
                 } 
                 // down arrow
-                else if (event.key.keysym.sym == SDLK_DOWN) {
+                else if (event.key.keysym.sym == SDLK_DOWN ) {
                     // scroll down
                     if (cursor_position < NUM_ROWS - 1) {
                         cursor_position++; // stay within the list
@@ -492,6 +497,35 @@ int main(int argc, char* argv[]) {
                     if ((selected_page < MAX_PAGES) && (single_pokemon_view == true)) {
                         selected_page++;
                     }
+                }
+            }
+            // scrolling
+            if(event.type == SDL_MOUSEWHEEL)
+            {
+                if(event.wheel.y > 0) // scroll up
+                {
+                    // scroll up
+                    // make sure the cursor stays off the header
+                    if (cursor_position > 1) { 
+                        cursor_position--;
+                        if (selected_position > 1) {
+                            selected_position--;
+                        }
+                    }
+                    if (scroll_offset > 0 && cursor_position < scroll_offset + MAX_DISPLAY_ROWS / 2) {
+                        scroll_offset--;
+                    }
+                }
+                else if(event.wheel.y < 0) // scroll down
+                {
+                    // scroll down
+                    if (cursor_position < NUM_ROWS - 1) {
+                        cursor_position++; // stay within the list
+                        if (selected_position < NUM_ROWS - 1) {
+                            selected_position++;
+                        }
+                    }
+                    if (scroll_offset < NUM_ROWS - MAX_DISPLAY_ROWS && cursor_position > scroll_offset + MAX_DISPLAY_ROWS / 2) scroll_offset++;
                 }
             }
         }
@@ -633,17 +667,26 @@ int main(int argc, char* argv[]) {
             else {
                 // render the list of pokemon
                 if (i == cursor_position) {
-                    SDL_Rect highlight_rect = {40, 40 + (i - scroll_offset)*45,720,30};
+                    SDL_Rect highlight_rect = {0, 40 + (i - scroll_offset)*45,760,30};
                     SDL_RenderCopy(renderer, highlight_texture, NULL, &highlight_rect);
-                    // render icon
-                    SDL_Rect icon_rect = {0,10 + (i - scroll_offset)*45, 64, 64};  
-                    SDL_RenderCopy(renderer, icons[i], NULL, &icon_rect);
                 }
                 
                 // render list
                 SDL_Rect rect = {50, 40 + (i - scroll_offset)*45, rendered_text[i].surface->w, rendered_text[i].surface->h};
                 // copy a portion of the texture to the current rendering target
                 SDL_RenderCopy(renderer, rendered_text[i].texture, NULL, &rect);
+
+                if (i == cursor_position) {
+                    // make a little box to cover the asterisk
+                    SDL_Rect highlight_rect = {60, 40 + (i - scroll_offset)*45,30,30};
+                    SDL_RenderCopy(renderer, highlight_texture, NULL, &highlight_rect);
+                    // add a circle
+                    SDL_Rect circle_rect = {28, 15 + (i - scroll_offset)*45, 60, 60};
+                    SDL_RenderCopy(renderer, circle, NULL, &circle_rect);
+                    // render icon after text so it covers the icon a bit
+                    SDL_Rect icon_rect = {5, -15 + (i - scroll_offset)*45, 96, 96};  
+                    SDL_RenderCopy(renderer, icons[i], NULL, &icon_rect);
+                }
             }
         }
 
