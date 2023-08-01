@@ -19,15 +19,14 @@ The `pokedex.c` is what compiles into the `CLI_Kanto_Pokedex` which is run with 
 ```
 gcc -o CLI_Kanto_Pokedex pokedex.c
 ```
- * To do list:
- * 
- * ~ Now
- * - change font to black
- * - add white rectangles as text boxes behind text
- * - add one time animation to single pokemon view
- * - add consistent animation to the icon of the pokemon in the list view
- * 
- * ~ Later
- * - add a pokeball icon instead of the pokemon icon when scrolling
- * - expand to include all gen 3 pokemon
- * - begin to test hardware interaction
+To do list:
+ * Now
+   - change font to black
+   - add white rectangles as text boxes behind text
+   - add one time animation to single pokemon view
+   - add consistent animation to the icon of the pokemon in the list view
+   
+ * Later
+   - add a pokeball icon instead of the pokemon icon when scrolling
+   - expand to include all gen 3 pokemon
+   - begin to test hardware interaction
