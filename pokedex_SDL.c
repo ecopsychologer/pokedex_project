@@ -3,6 +3,19 @@
  * Build: 
 gcc -o pokedex pokedex_SDL.c -lSDL2 -lSDL2_ttf -lSDL2_image
  * 
+ * To do:
+ * 
+ * ~ Now
+ * - change font to black
+ * - add white rectangles as text boxes behind text
+ * - add one time animation to single pokemon view
+ * - add consistent animation to the icon of the pokemon in the list view
+ * 
+ * ~ Later
+ * - add a pokeball icon instead of the pokemon icon when scrolling
+ * - expand to include all gen 3 pokemon
+ * - begin to test hardware interaction
+ * 
 **/
 
 #include <SDL2/SDL.h>
@@ -322,8 +335,12 @@ int main(int argc, char* argv[]) {
     int selected_position = -1;
     // tracker for which page we are on
     int selected_page = 0;
+    // column width
+    int col_w = 3;
     // variable to track whether we're viewing one pokemon or not
     bool single_pokemon_view = false;
+    // variable to track if the animation has played
+    bool animated = false;
 
     // Load Pokemon data
     char*** data = load_data();
@@ -507,6 +524,7 @@ int main(int argc, char* argv[]) {
                     picsize = picsize * 6;
                     xmod = 145;
                     ymod = 85;
+                    col_w = 2;
                     
                     sprintf(info_string, "Pokemon No. %d: %s\n \n", pokemon.id, pokemon.name); // pokemon number and name
                     // choose proper text by number of types
@@ -529,9 +547,11 @@ int main(int argc, char* argv[]) {
                 else if (selected_page == 1) {
                     // page 2
                     // adjust sizing
+                    // set all variables
                     picsize = picsize * 5;
-                    xmod = 65;
-                    ymod = 35;
+                    xmod = 95;
+                    ymod = 95;
+                    col_w = 4;
 
                     sprintf(info_string, "Pokemon No. %d: %s\n \n", pokemon.id, pokemon.name); // pokemon number and name
                     if (pokemon.types == 1) {
@@ -540,16 +560,20 @@ int main(int argc, char* argv[]) {
                         sprintf(info_string + strlen(info_string), "Types: %s\n             %s \n", pokemon.type1, pokemon.type2);
                     }
                     sprintf(info_string + strlen(info_string),
-                    " \n \n \n \n \n"
-                    "Damage To\n"
-                    " Water !col Fire !col Normal \n"
-                    " %.2f !col %.2f !col %.2f\n"
-                    " Ice !col Grass !col Electric\n"
-                    " %.2f !col %.2f !col %.2f\n"
-                    " Fight !col Poison !col Ground\n"
-                    " %.2f !col %.2f !col %.2f\n"
-                    " Flying !col Bug !col Psychic\n"
-                    " %.2f !col %.2f !col %.2f\n"
+                    " \n"
+                    "Damage From\n"
+                    " Water !col Fire \n"
+                    " %.2f !col %.2f \n"
+                    " Normal !col Ice \n"
+                    " %.2f !col %.2f \n"
+                    " Grass !col Electric\n"
+                    " %.2f !col %.2f \n"
+                    " Fight !col Poison \n"
+                    " %.2f !col %.2f \n"
+                    " Ground !col Flying \n"
+                    " %.2f !col %.2f \n"
+                    " Bug !col Psychic\n"
+                    " %.2f !col %.2f \n"
                     " Rock !col Ghost !col Dragon\n"
                     " %.2f !col %.2f !col %.2f\n \n"
                     "Number of Evolutions: %d\n",
@@ -588,7 +612,7 @@ int main(int argc, char* argv[]) {
                         // int column_buffer = (k > 0) ? 50 : 0;
                         RenderedText cols = render_text(columns[k], font, color, renderer);
                         // the first box is our x position, which is what gets changed for the columns
-                        SDL_Rect rect = {LEFT_MARGIN - 2.5*LEFT_MARGIN*k + k*WINDOW_WIDTH/split_count, SPV_Y_OFFSET + j * cols.surface->h, cols.surface->w, cols.surface->h};
+                        SDL_Rect rect = {LEFT_MARGIN + k*((WINDOW_WIDTH - 100)/col_w), SPV_Y_OFFSET + j * cols.surface->h, cols.surface->w, cols.surface->h};
                         SDL_RenderCopy(renderer, cols.texture, NULL, &rect);
                         SDL_FreeSurface(cols.surface);
                         SDL_DestroyTexture(cols.texture);
