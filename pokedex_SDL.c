@@ -145,16 +145,30 @@ RenderedText* load_rendered_text(char*** data, TTF_Font* font, SDL_Color color, 
         } else {
             sprintf(pokemon_string, " * No. %s: %s", data[i][0], data[i][1]);
         }
-
-        // create a surface in the rendered text array
-        rendered_text[i].surface = TTF_RenderText_Solid(font, pokemon_string, color);
-        if(rendered_text[i].surface == NULL) {
-            printf("Text rendering failed, error: %s\n", TTF_GetError());
-        }
-        // create a texture in the rendered text array
-        rendered_text[i].texture = SDL_CreateTextureFromSurface(renderer, rendered_text[i].surface);
-        if(rendered_text[i].texture == NULL) {
-            printf("Failed to create texture: %s\n", SDL_GetError());
+        if (i == 0) {
+            // title line gets separate color
+            SDL_Color tmp_color = {255, 255, 255, 255};
+            // create a surface in the rendered text array
+            rendered_text[i].surface = TTF_RenderText_Solid(font, pokemon_string, tmp_color);
+            if(rendered_text[i].surface == NULL) {
+                printf("Text rendering failed, error: %s\n", TTF_GetError());
+            }
+            // create a texture in the rendered text array
+            rendered_text[i].texture = SDL_CreateTextureFromSurface(renderer, rendered_text[i].surface);
+            if(rendered_text[i].texture == NULL) {
+                printf("Failed to create texture: %s\n", SDL_GetError());
+            }
+        } else {
+            // create a surface in the rendered text array
+            rendered_text[i].surface = TTF_RenderText_Solid(font, pokemon_string, color);
+            if(rendered_text[i].surface == NULL) {
+                printf("Text rendering failed, error: %s\n", TTF_GetError());
+            }
+            // create a texture in the rendered text array
+            rendered_text[i].texture = SDL_CreateTextureFromSurface(renderer, rendered_text[i].surface);
+            if(rendered_text[i].texture == NULL) {
+                printf("Failed to create texture: %s\n", SDL_GetError());
+            }
         }
     }
     return rendered_text;
@@ -372,22 +386,29 @@ int main(int argc, char* argv[]) {
     }
 
     // Create a color for our text
-    SDL_Color color = {255, 255, 255, 255};
-    // and a highlight color
-    SDL_Color highlight_color = {255, 55, 55, 255};
+    SDL_Color color = {0, 0, 0, 255};
 
     RenderedText* rendered_text = load_rendered_text(data, font, color, renderer);
 
     // create a rectangular surface and texture for highlighting
-    SDL_Surface* highlight_surface = SDL_CreateRGBSurface(0,800,30,32,0,0,0,0);
-
+    SDL_Surface* highlight_surface = SDL_CreateRGBSurface(0,800,30,32,0,0,0,255);
+    SDL_Surface* text_box_surface = SDL_CreateRGBSurface(0,800,30,32,0,0,0,255); //make a white text box
+    
+    if (text_box_surface == NULL) {
+        printf("Failed to create text box surface: %s\n", SDL_GetError());
+        exit(1);
+    }
     /*
      * set highlight color here in RGB format 0-255
     */
-    SDL_FillRect(highlight_surface, NULL, SDL_MapRGB(highlight_surface->format,222,55,25));
+    SDL_FillRect(highlight_surface, NULL, SDL_MapRGB(highlight_surface->format,242,45,45));
+
+    SDL_FillRect(text_box_surface, NULL, SDL_MapRGB(text_box_surface->format,255,255,255));
 
     // create the texture
     SDL_Texture* highlight_texture = SDL_CreateTextureFromSurface(renderer, highlight_surface);
+    
+    SDL_Texture* text_box_texture = SDL_CreateTextureFromSurface(renderer, text_box_surface);
 
     // load gif icons into an array
     SDL_Texture* icons[NUM_ROWS];
@@ -641,9 +662,14 @@ int main(int argc, char* argv[]) {
                     char** columns = split_line_into_columns(lines[j], &split_count, "!col");
 
                     // here is where the text box is rendered
-
+                    // then render text boxes under the text
+                    if (strlen(lines[j]) > 3) {
+                        SDL_Rect text_box_rect = {LEFT_MARGIN - 5, SPV_Y_OFFSET + j * 30 - 5, (WINDOW_WIDTH/(4-split_count)), 40};
+                        // copy the text boxes so that the rest of the stuff is on top
+                        SDL_RenderCopy(renderer, text_box_texture, NULL, &text_box_rect);
+                    }
                     for (int k = 0; k < split_count; k++) {
-                        // int column_buffer = (k > 0) ? 50 : 0;
+                        // first render the columns
                         RenderedText cols = render_text(columns[k], font, color, renderer);
                         // the first box is our x position, which is what gets changed for the columns
                         SDL_Rect rect = {LEFT_MARGIN + k*((WINDOW_WIDTH - 100)/col_w), SPV_Y_OFFSET + j * cols.surface->h, cols.surface->w, cols.surface->h};
@@ -665,9 +691,14 @@ int main(int argc, char* argv[]) {
 
             // Full Pokemon List View Rendering
             else {
-                // render the list of pokemon
-                if (i == cursor_position) {
-                    SDL_Rect highlight_rect = {0, 40 + (i - scroll_offset)*45,760,30};
+                if ((i != cursor_position) && (i > 0)) {
+                    // render a white box under the text
+                    SDL_Rect text_box_rect = {50, 35 + (i - scroll_offset)*45, 10 + rendered_text[i].surface->w, 10 + rendered_text[i].surface->h};
+                    SDL_RenderCopy(renderer, text_box_texture, NULL, &text_box_rect);
+                }
+                // render the cursor
+                else if (i == cursor_position) {
+                    SDL_Rect highlight_rect = {0, 38 + (i - scroll_offset)*45,760,30};
                     SDL_RenderCopy(renderer, highlight_texture, NULL, &highlight_rect);
                 }
                 
@@ -678,7 +709,7 @@ int main(int argc, char* argv[]) {
 
                 if (i == cursor_position) {
                     // make a little box to cover the asterisk
-                    SDL_Rect highlight_rect = {60, 40 + (i - scroll_offset)*45,30,30};
+                    SDL_Rect highlight_rect = {60, 38 + (i - scroll_offset)*45,30,30};
                     SDL_RenderCopy(renderer, highlight_texture, NULL, &highlight_rect);
                     // add a circle
                     SDL_Rect circle_rect = {28, 15 + (i - scroll_offset)*45, 60, 60};
@@ -700,6 +731,10 @@ done:
     free_rendered_text(rendered_text);
     TTF_CloseFont(font);
     SDL_FreeSurface(highlight_surface);
+    SDL_FreeSurface(text_box_surface);
+    SDL_FreeSurface(temp_surface);
+    SDL_DestroyTexture(circle);
+    SDL_DestroyTexture(text_box_texture);
     SDL_DestroyTexture(highlight_texture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
