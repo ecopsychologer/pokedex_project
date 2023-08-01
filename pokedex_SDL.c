@@ -30,15 +30,18 @@ gcc -o pokedex pokedex_SDL.c -lSDL2 -lSDL2_ttf -lSDL2_image
 #define MAX_FIELD_SIZE 200
 #define NUM_ROWS 152
 #define NUM_COLS 35
-#define MAX_DISPLAY_ROWS 12
+#define MAX_DISPLAY_ROWS 5
 #define TARGET_FRAME_RATE 60
 #define POKEDEX_ENTRY_SIZE 20000
-#define WINDOW_WIDTH 800
-#define WINDOW_HEIGHT 600
-#define FONT_SIZE 24
+#define WINDOW_WIDTH 320
+#define WINDOW_HEIGHT 240
+#define FONT_SIZE 12
 #define LEFT_MARGIN 50
 #define SPV_Y_OFFSET 20
 #define MAX_PAGES 1
+#define TEXT_R 255
+#define TEXT_G 255
+#define TEXT_B 255
 
 typedef struct {
     SDL_Surface* surface;
@@ -372,23 +375,39 @@ int main(int argc, char* argv[]) {
     }
 
     // Create a color for our text
+<<<<<<< Updated upstream
     SDL_Color color = {255, 255, 255, 255};
     // and a highlight color
     SDL_Color highlight_color = {255, 55, 55, 255};
+=======
+    SDL_Color color = {TEXT_R, TEXT_G, TEXT_B, 255};
+>>>>>>> Stashed changes
 
     RenderedText* rendered_text = load_rendered_text(data, font, color, renderer);
 
     // create a rectangular surface and texture for highlighting
+<<<<<<< Updated upstream
     SDL_Surface* highlight_surface = SDL_CreateRGBSurface(0,800,30,32,0,0,0,0);
+=======
+    SDL_Surface* highlight_surface = SDL_CreateRGBSurface(0,800,30,32,0,0,0,255);
+>>>>>>> Stashed changes
 
     /*
      * set highlight color here in RGB format 0-255
     */
+<<<<<<< Updated upstream
     SDL_FillRect(highlight_surface, NULL, SDL_MapRGB(highlight_surface->format,222,55,25));
 
     // create the texture
     SDL_Texture* highlight_texture = SDL_CreateTextureFromSurface(renderer, highlight_surface);
 
+=======
+    SDL_FillRect(highlight_surface, NULL, SDL_MapRGB(highlight_surface->format,242,45,45));
+
+    // create the texture
+    SDL_Texture* highlight_texture = SDL_CreateTextureFromSurface(renderer, highlight_surface);
+    
+>>>>>>> Stashed changes
     // load gif icons into an array
     SDL_Texture* icons[NUM_ROWS];
     for(int i = 1; i < NUM_ROWS; i++) {
@@ -628,7 +647,7 @@ int main(int argc, char* argv[]) {
                 /**
                  * copy the render of the full pokemon picture here
                 */
-                SDL_Rect full_pic_rect = {WINDOW_WIDTH - 260 - xmod, -15 + ymod, picsize, picsize};  // Adjust these values as necessary
+                SDL_Rect full_pic_rect = {WINDOW_WIDTH - 260 - xmod, -15 + ymod, picsize, picsize};
                 SDL_RenderCopy(renderer, full_pics[selected_position], NULL, &full_pic_rect);
                 // render a highlight bar as a backdrop for the top row
                 SDL_Rect highlight_rect = {40, 24,720,30};
@@ -640,8 +659,12 @@ int main(int argc, char* argv[]) {
                     // columns now holds each column in an array
                     char** columns = split_line_into_columns(lines[j], &split_count, "!col");
 
+<<<<<<< Updated upstream
                     // here is where the text box is rendered
 
+=======
+                    // render each column
+>>>>>>> Stashed changes
                     for (int k = 0; k < split_count; k++) {
                         // int column_buffer = (k > 0) ? 50 : 0;
                         RenderedText cols = render_text(columns[k], font, color, renderer);
@@ -665,9 +688,15 @@ int main(int argc, char* argv[]) {
 
             // Full Pokemon List View Rendering
             else {
+<<<<<<< Updated upstream
                 // render the list of pokemon
                 if (i == cursor_position) {
                     SDL_Rect highlight_rect = {0, 40 + (i - scroll_offset)*45,760,30};
+=======
+                // render the cursor
+                if (i == cursor_position) {
+                    SDL_Rect highlight_rect = {0, 38 + (i - scroll_offset)*45,760,30};
+>>>>>>> Stashed changes
                     SDL_RenderCopy(renderer, highlight_texture, NULL, &highlight_rect);
                 }
                 
@@ -700,6 +729,11 @@ done:
     free_rendered_text(rendered_text);
     TTF_CloseFont(font);
     SDL_FreeSurface(highlight_surface);
+<<<<<<< Updated upstream
+=======
+    SDL_FreeSurface(temp_surface);
+    SDL_DestroyTexture(circle);
+>>>>>>> Stashed changes
     SDL_DestroyTexture(highlight_texture);
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
