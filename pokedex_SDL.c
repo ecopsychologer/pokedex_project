@@ -44,6 +44,9 @@ gcc -o pokedex pokedex_SDL.c -lSDL2 -lSDL2_ttf -lSDL2_image
 #define TEXT_R 255                   // default red value for text
 #define TEXT_G 255                  // default green value for text
 #define TEXT_B 255                 // default blue value for text
+#define TEXT_RECT_H (30/24)*FONT_SIZE                   // default height for the rectangle around text
+#define TEXT_RECT_W WINDOW_WIDTH - LEFT_MARGIN      // default width for a rect
+#define SCROLL_Y 38 + (i - scroll_offset)*45            // the default y rendering position
 
 typedef struct {
     SDL_Surface* surface;
@@ -382,7 +385,7 @@ int main(int argc, char* argv[]) {
     RenderedText* rendered_text = load_rendered_text(data, font, color, renderer);
 
     // create a rectangular surface and texture for highlighting
-    SDL_Surface* highlight_surface = SDL_CreateRGBSurface(0,800,30,32,0,0,0,255);
+    SDL_Surface* highlight_surface = SDL_CreateRGBSurface(0,800,TEXT_RECT_H,32,0,0,0,255);
 
     /*
      * set highlight color here in RGB format 0-255
@@ -634,7 +637,7 @@ int main(int argc, char* argv[]) {
                 SDL_Rect full_pic_rect = {WINDOW_WIDTH - 260 - xmod, -15 + ymod, picsize, picsize};
                 SDL_RenderCopy(renderer, full_pics[selected_position], NULL, &full_pic_rect);
                 // render a highlight bar as a backdrop for the top row
-                SDL_Rect highlight_rect = {40, 24,720,30};
+                SDL_Rect highlight_rect = {40, 24, TEXT_RECT_W,TEXT_RECT_H};
                 SDL_RenderCopy(renderer, highlight_texture, NULL, &highlight_rect);
 
                 // The actual rendering of the information from the selected pokemon's line
@@ -669,24 +672,24 @@ int main(int argc, char* argv[]) {
             else {
                 // render the cursor
                 if (i == cursor_position) {
-                    SDL_Rect highlight_rect = {0, 38 + (i - scroll_offset)*45,760,30};
+                    SDL_Rect highlight_rect = {0, SCROLL_Y,TEXT_RECT_W, TEXT_RECT_H};
                     SDL_RenderCopy(renderer, highlight_texture, NULL, &highlight_rect);
                 }
                 
-                // render list
-                SDL_Rect rect = {50, 40 + (i - scroll_offset)*45, rendered_text[i].surface->w, rendered_text[i].surface->h};
+                // render list at position [i]
+                SDL_Rect rect = {LEFT_MARGIN, SCROLL_Y, rendered_text[i].surface->w, rendered_text[i].surface->h};
                 // copy a portion of the texture to the current rendering target
                 SDL_RenderCopy(renderer, rendered_text[i].texture, NULL, &rect);
 
                 if (i == cursor_position) {
                     // make a little box to cover the asterisk
-                    SDL_Rect highlight_rect = {60, 40 + (i - scroll_offset)*45,30,30};
+                    SDL_Rect highlight_rect = {LEFT_MARGIN, SCROLL_Y,TEXT_RECT_H,TEXT_RECT_H};
                     SDL_RenderCopy(renderer, highlight_texture, NULL, &highlight_rect);
                     // add a circle
-                    SDL_Rect circle_rect = {28, 15 + (i - scroll_offset)*45, 60, 60};
+                    SDL_Rect circle_rect = {2*TEXT_RECT_H, -1.5*TEXT_RECT_H + SCROLL_Y, 4*TEXT_RECT_H, 4*TEXT_RECT_H};
                     SDL_RenderCopy(renderer, circle, NULL, &circle_rect);
                     // render icon after text so it covers the icon a bit
-                    SDL_Rect icon_rect = {5, -15 + (i - scroll_offset)*45, 96, 96};  
+                    SDL_Rect icon_rect = {TEXT_RECT_H/3, -4*TEXT_RECT_H + SCROLL_Y, 32*(TEXT_RECT_H + 60)/30, 32*(TEXT_RECT_H + 60)/30};  
                     SDL_RenderCopy(renderer, icons[i], NULL, &icon_rect);
                 }
             }
