@@ -37,16 +37,16 @@ gcc -o pokedex pokedex_SDL.c -lSDL2 -lSDL2_ttf -lSDL2_image
 #define POKEDEX_ENTRY_SIZE 20000    // max characters for an entire pokedex entry
 #define WINDOW_WIDTH 320            // window width in pixels
 #define WINDOW_HEIGHT 240           // window height in pixels
-#define FONT_SIZE 12                // font size
-#define LEFT_MARGIN 50              // pixels from left border of window
+#define FONT_SIZE 16                // font size
+#define LEFT_MARGIN 25              // pixels from left border of window
 #define SPV_Y_OFFSET 20             // single pokemon view Y offset from the top border in pixels
-#define MAX_PAGES 1                 // count starts at zero
+#define MAX_PAGES 3                 // count starts at zero
 #define TEXT_R 255                   // default red value for text
 #define TEXT_G 255                  // default green value for text
 #define TEXT_B 255                 // default blue value for text
-#define TEXT_RECT_H (30/24)*FONT_SIZE                   // default height for the rectangle around text
+#define TEXT_RECT_H 12                   // default height for the rectangle around text
 #define TEXT_RECT_W WINDOW_WIDTH - LEFT_MARGIN      // default width for a rect
-#define SCROLL_Y 38 + (i - scroll_offset)*45            // the default y rendering position
+#define SCROLL_Y 25 + (i - scroll_offset)*45            // the default y rendering position
 
 typedef struct {
     SDL_Surface* surface;
@@ -384,8 +384,8 @@ int main(int argc, char* argv[]) {
 
     RenderedText* rendered_text = load_rendered_text(data, font, color, renderer);
 
-    // create a rectangular surface and texture for highlighting
-    SDL_Surface* highlight_surface = SDL_CreateRGBSurface(0,800,TEXT_RECT_H,32,0,0,0,255);
+    // create a rectangular surface and texture for highlighting 
+    SDL_Surface* highlight_surface = SDL_CreateRGBSurface(0,TEXT_RECT_W,TEXT_RECT_H,32,0,0,0,255);
 
     /*
      * set highlight color here in RGB format 0-255
@@ -558,42 +558,61 @@ int main(int argc, char* argv[]) {
 
                 // create a string to hold the pokemon's data
                 char info_string[POKEDEX_ENTRY_SIZE] = "";
-                if (selected_page == 0) { // if on page 0, print this
-                    // first page
-                    // adjust sizing
-                    picsize = picsize * 6;
-                    xmod = 145;
-                    ymod = 85;
+
+                sprintf(info_string, "No. %d: %s\n \n", pokemon.id, pokemon.name); // pokemon number and name
+                if (selected_page == 0) {
+                    picsize = picsize * 3.5;
+                    // render the pokemon
+                    SDL_Rect full_pic_rect = {(WINDOW_WIDTH/2)-(picsize/2), SPV_Y_OFFSET + ymod, picsize, picsize};
+                    SDL_RenderCopy(renderer, full_pics[selected_position], NULL, &full_pic_rect);
+                    
+                }
+                else if (selected_page == 1) {
                     col_w = 2;
                     
-                    sprintf(info_string, "Pokemon No. %d: %s\n \n", pokemon.id, pokemon.name); // pokemon number and name
                     // choose proper text by number of types
                     if (pokemon.types == 1) {
                         sprintf(info_string + strlen(info_string), "Type: %s \n \n", pokemon.type1);
                     } else {
                         sprintf(info_string + strlen(info_string), "Types: %s\n             %s\n", pokemon.type1, pokemon.type2);
                     }
+                    sprintf(info_string + strlen(info_string), "Height: %.2fm \nWeight: %.2fkg\n \n", pokemon.height, pokemon.weight);
+
+                    if (pokemon.legendary) {
+                        sprintf(info_string + strlen(info_string), "Legendary! \n");
+                    } else {
+                        sprintf(info_string + strlen(info_string), "Non Legendary \n");
+                    }
+
+                    if (pokemon.evolutions > 2) {
+                        sprintf(info_string + strlen(info_string), "3 or More Evolutions \n");
+                    } else if (pokemon.evolutions > 1) {
+                        sprintf(info_string + strlen(info_string), "2 Evolutions \n");
+                    } else if (pokemon.evolutions > 0) {
+                        sprintf(info_string + strlen(info_string), "One Evolution \n");
+                    } else {
+                        sprintf(info_string + strlen(info_string), "No Evolutions \n");
+                    }
                     sprintf(info_string + strlen(info_string),
-                    " \n \n \n \n"
-                    " \nHeight: %.2fm \nWeight: %.2fkg\n \n"
                     "Capture Rate %d \n"
-                    "Exp. Gain Speed:\n->%s \n \n"
-                    "Base Total %d \nHP: %d \n \n"
-                    " Attack: %d !col Defense: %d\n"
-                    " Special: %d !col Speed: %d\n",
-                    pokemon.height, pokemon.weight, pokemon.capture_rate, pokemon.exp_speed,pokemon.base_total, pokemon.hp, pokemon.attack, pokemon.defense, pokemon.special, pokemon.speed);
+                    "Exp. Gain Speed: \n -> %s \n",
+                    pokemon.capture_rate, pokemon.exp_speed);
                 }
 
-                else if (selected_page == 1) {
-                    // page 2
+                else if (selected_page == 2) {
+                    col_w = 2;
+                    
+                    sprintf(info_string + strlen(info_string),
+                    "Base Total %d \nHP: %d \n \n"
+                    "* Attack: %d \n* Defense: %d\n"
+                    "* Special: %d \n* Speed: %d\n",
+                    pokemon.base_total, pokemon.hp, pokemon.attack, pokemon.defense, pokemon.special, pokemon.speed);
+                }
+
+                else if (selected_page == 3) {
                     // adjust sizing
-                    // set all variables
-                    picsize = picsize * 5;
-                    xmod = 95;
-                    ymod = 95;
                     col_w = 4;
 
-                    sprintf(info_string, "Pokemon No. %d: %s\n \n", pokemon.id, pokemon.name); // pokemon number and name
                     if (pokemon.types == 1) {
                         sprintf(info_string + strlen(info_string), "Type: %s \n \n", pokemon.type1);
                     } else {
@@ -602,44 +621,25 @@ int main(int argc, char* argv[]) {
                     sprintf(info_string + strlen(info_string),
                     " \n"
                     "Damage From\n"
-                    " Water !col Fire \n"
-                    " %.2f !col %.2f \n"
-                    " Normal !col Ice \n"
-                    " %.2f !col %.2f \n"
-                    " Grass !col Electric\n"
-                    " %.2f !col %.2f \n"
-                    " Fight !col Poison \n"
-                    " %.2f !col %.2f \n"
-                    " Ground !col Flying \n"
-                    " %.2f !col %.2f \n"
-                    " Bug !col Psychic\n"
-                    " %.2f !col %.2f \n"
-                    " Rock !col Ghost !col Dragon\n"
-                    " %.2f !col %.2f !col %.2f\n \n"
-                    "Number of Evolutions: %d\n",
-                    pokemon.water_dmg, pokemon.fire_dmg, pokemon.normal_dmg, pokemon.ice_dmg, pokemon.grass_dmg, pokemon.electric_dmg, pokemon.fight_dmg, pokemon.poison_dmg, pokemon.ground_dmg, pokemon.flying_dmg, pokemon.bug_dmg, pokemon.psychic_dmg, pokemon.rock_dmg, pokemon.ghost_dmg, pokemon.dragon_dmg, pokemon.evolutions);
-                    if (pokemon.legendary) {
-                        sprintf(info_string + strlen(info_string), "\nThis is a Legendary Pokemon!");
-                    } else {
-                        sprintf(info_string + strlen(info_string), "\nThis is not a Legendary Pokemon.");
-                    }
+                    " Water !col Fire !col Normal !col Ice \n"
+                    " %.2f !col %.2f !col %.2f !col %.2f \n"
+                    "Grass !col Electric !col Fight !col Poison \n"
+                    " %.2f !col %.2f !col %.2f !col %.2f \n"
+                    "Ground !col Flying !col Bug !col Psychic \n"
+                    " %.2f !col %.2f !col %.2f !col %.2f \n"
+                    " !col Rock !col Ghost !col Dragon\n"
+                    " %.2f !col %.2f !col %.2f\n \n",
+                    pokemon.water_dmg, pokemon.fire_dmg, pokemon.normal_dmg, pokemon.ice_dmg, pokemon.grass_dmg, pokemon.electric_dmg, pokemon.fight_dmg, pokemon.poison_dmg, pokemon.ground_dmg, pokemon.flying_dmg, pokemon.bug_dmg, pokemon.psychic_dmg, pokemon.rock_dmg, pokemon.ghost_dmg, pokemon.dragon_dmg);
+                    
                 }
                 // splitting the info_string into lines below
                 // trying to do a little functional fix to make new lines work with SDL by typing '\n'
                 int line_count;
                 char** lines = split_string_into_lines(info_string, &line_count);
 
-
-
-                /**
-                 * copy the render of the full pokemon picture here
-                */
-                SDL_Rect full_pic_rect = {WINDOW_WIDTH - 260 - xmod, -15 + ymod, picsize, picsize};
-                SDL_RenderCopy(renderer, full_pics[selected_position], NULL, &full_pic_rect);
                 // render a highlight bar as a backdrop for the top row
-                SDL_Rect highlight_rect = {40, 24, TEXT_RECT_W,TEXT_RECT_H};
+                SDL_Rect highlight_rect = {LEFT_MARGIN - 3, 24, TEXT_RECT_W,TEXT_RECT_H};
                 SDL_RenderCopy(renderer, highlight_texture, NULL, &highlight_rect);
-
                 // The actual rendering of the information from the selected pokemon's line
                 for (int j = 0; j < line_count; j++) {
                     int split_count; // how many columns there are
@@ -672,7 +672,7 @@ int main(int argc, char* argv[]) {
             else {
                 // render the cursor
                 if (i == cursor_position) {
-                    SDL_Rect highlight_rect = {0, SCROLL_Y,TEXT_RECT_W, TEXT_RECT_H};
+                    SDL_Rect highlight_rect = {0, 7 + SCROLL_Y,TEXT_RECT_W, TEXT_RECT_H};
                     SDL_RenderCopy(renderer, highlight_texture, NULL, &highlight_rect);
                 }
                 
@@ -686,10 +686,10 @@ int main(int argc, char* argv[]) {
                     SDL_Rect highlight_rect = {LEFT_MARGIN, SCROLL_Y,TEXT_RECT_H,TEXT_RECT_H};
                     SDL_RenderCopy(renderer, highlight_texture, NULL, &highlight_rect);
                     // add a circle
-                    SDL_Rect circle_rect = {2*TEXT_RECT_H, -1.5*TEXT_RECT_H + SCROLL_Y, 4*TEXT_RECT_H, 4*TEXT_RECT_H};
+                    SDL_Rect circle_rect = {24, -18 + SCROLL_Y, 48, 48};
                     SDL_RenderCopy(renderer, circle, NULL, &circle_rect);
                     // render icon after text so it covers the icon a bit
-                    SDL_Rect icon_rect = {TEXT_RECT_H/3, -4*TEXT_RECT_H + SCROLL_Y, 32*(TEXT_RECT_H + 60)/30, 32*(TEXT_RECT_H + 60)/30};  
+                    SDL_Rect icon_rect = {-5, -48 + SCROLL_Y, 80, 80};  
                     SDL_RenderCopy(renderer, icons[i], NULL, &icon_rect);
                 }
             }
