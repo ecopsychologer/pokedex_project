@@ -47,6 +47,23 @@ gcc -o pokedex pokedex_SDL.c -lSDL2 -lSDL2_ttf -lSDL2_image
 #define TEXT_RECT_H 12                   // default height for the rectangle around text
 #define TEXT_RECT_W WINDOW_WIDTH - LEFT_MARGIN      // default width for a rect
 #define SCROLL_Y 25 + (i - scroll_offset)*45            // the default y rendering position
+#define NUM_CHARACTERS 8            // how many characters to block on the cursor line
+#define TYPES 15                    // how many types of pokemon there are
+#define BUG_TYPE 0
+#define DRAGON_TYPE 1
+#define ELECTRIC_TYPE 2
+#define FIGHTING_TYPE 3
+#define FIRE_TYPE 4
+#define FLYING_TYPE 5
+#define GHOST_TYPE 6
+#define GRASS_TYPE 7
+#define GROUND_TYPE 8
+#define ICE_TYPE 9
+#define NORMAL_TYPE 10
+#define POISON_TYPE 11
+#define PSYCHIC_TYPE 12
+#define ROCK_TYPE 13
+#define WATER_TYPE 14
 
 typedef struct {
     SDL_Surface* surface;
@@ -151,9 +168,14 @@ RenderedText* load_rendered_text(char*** data, TTF_Font* font, SDL_Color color, 
         if (i == 0) {
             sprintf(pokemon_string, " ID No. - Name");
         } else {
-            sprintf(pokemon_string, " * No. %s: %s", data[i][0], data[i][1]);
+            if (i < 10) {
+                sprintf(pokemon_string, " No. 00%s: %s", data[i][0], data[i][1]);
+            } else if (i < 100) {
+                sprintf(pokemon_string, " No. 0%s: %s", data[i][0], data[i][1]);
+            } else {  
+                sprintf(pokemon_string, " No. %s: %s", data[i][0], data[i][1]);
+            }
         }
-
         // create a surface in the rendered text array
         rendered_text[i].surface = TTF_RenderText_Solid(font, pokemon_string, color);
         if(rendered_text[i].surface == NULL) {
@@ -174,6 +196,102 @@ void free_rendered_text(RenderedText* rendered_text) {
         SDL_DestroyTexture(rendered_text[i].texture); // a dramatic liberation of that texture from memory
     }
     free(rendered_text);
+}
+
+int*** load_types(char*** data) {
+
+    // allocate memory for the data
+    int*** type_array = malloc(sizeof(int**) * NUM_ROWS);
+    for (int i = 0; i < NUM_ROWS; i++) {
+        type_array[i] = malloc(sizeof(int*) * 3);
+        for (int j = 0; j < 3; j++)
+            type_array[i][j] = malloc(sizeof(int));
+    }
+
+    for (int i = 0; i < NUM_ROWS; i++) {
+        for (int field = 0; field <= 2; field++) {
+            switch (field) {
+                case 0:
+                    type_array[i][field] = atoi(data[i][2]); // convert the "Types" column to an int and save
+                    break;
+                case 1:
+                    if (data[i][3] == "bug") {
+                        type_array[i][field] = BUG_TYPE;
+                    } else if (data[i][3] == "dragon") {
+                        type_array[i][field] = DRAGON_TYPE;
+                    } else if (data[i][3] == "electric") {
+                        type_array[i][field] = ELECTRIC_TYPE;
+                    } else if (data[i][3] == "fighting") {
+                        type_array[i][field] = FIGHTING_TYPE;
+                    } else if (data[i][3] == "fire") {
+                        type_array[i][field] = FIRE_TYPE;
+                    } else if (data[i][3] == "flying") {
+                        type_array[i][field] = FLYING_TYPE;
+                    } else if (data[i][3] == "ghost") {
+                        type_array[i][field] = GHOST_TYPE;
+                    } else if (data[i][3] == "grass") {
+                        type_array[i][field] = GRASS_TYPE;
+                    } else if (data[i][3] == "ground") {
+                        type_array[i][field] = GROUND_TYPE;
+                    } else if (data[i][3] == "ice") {
+                        type_array[i][field] = ICE_TYPE;
+                    } else if (data[i][3] == "normal") {
+                        type_array[i][field] = NORMAL_TYPE;
+                    } else if (data[i][3] == "poison") {
+                        type_array[i][field] = POISON_TYPE;
+                    } else if (data[i][3] == "psychic") {
+                        type_array[i][field] = PSYCHIC_TYPE;
+                    } else if (data[i][3] == "rock") {
+                        type_array[i][field] = ROCK_TYPE;
+                    } else if (data[i][3] == "water") {
+                        type_array[i][field] = WATER_TYPE;
+                    } else {
+                        break;
+                    }
+                    break;
+                case 2:
+                    if (type_array[i][0] == 1) {
+                        type_array[i][field] = -1;
+                    } else {
+                        if (data[i][4] == "bug") {
+                            type_array[i][field] = BUG_TYPE;
+                        } else if (data[i][4] == "dragon") {
+                            type_array[i][field] = DRAGON_TYPE;
+                        } else if (data[i][4] == "electric") {
+                            type_array[i][field] = ELECTRIC_TYPE;
+                        } else if (data[i][4] == "fighting") {
+                            type_array[i][field] = FIGHTING_TYPE;
+                        } else if (data[i][4] == "fire") {
+                            type_array[i][field] = FIRE_TYPE;
+                        } else if (data[i][4] == "flying") {
+                            type_array[i][field] = FLYING_TYPE;
+                        } else if (data[i][4] == "ghost") {
+                            type_array[i][field] = GHOST_TYPE;
+                        } else if (data[i][4] == "grass") {
+                            type_array[i][field] = GRASS_TYPE;
+                        } else if (data[i][4] == "ground") {
+                            type_array[i][field] = GROUND_TYPE;
+                        } else if (data[i][4] == "ice") {
+                            type_array[i][field] = ICE_TYPE;
+                        } else if (data[i][4] == "normal") {
+                            type_array[i][field] = NORMAL_TYPE;
+                        } else if (data[i][4] == "poison") {
+                            type_array[i][field] = POISON_TYPE;
+                        } else if (data[i][4] == "psychic") {
+                            type_array[i][field] = PSYCHIC_TYPE;
+                        } else if (data[i][4] == "rock") {
+                            type_array[i][field] = ROCK_TYPE;
+                        } else if (data[i][4] == "water") {
+                            type_array[i][field] = WATER_TYPE;
+                        } else {
+                            break;
+                        }
+                        break;
+                    }
+            }
+        }
+    }
+    return type_array;
 }
 
 /*
@@ -321,10 +439,7 @@ Pokemon load_pokemon(char*** data, int index) {
     pokemon.ghost_dmg = atof(data[index][31]);
     pokemon.dragon_dmg = atof(data[index][32]);
     pokemon.evolutions = atoi(data[index][33]);
-    // unsure if the double negation does indeed turn it to bool
-    // so check here if there are issues
     pokemon.legendary = !!atoi(data[index][34]); 
-
     // finally,
     return pokemon;
 }
@@ -352,6 +467,7 @@ int main(int argc, char* argv[]) {
 
     // Load Pokemon data
     char*** data = load_data();
+    int*** type_array = load_types(data);
 
     // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -384,17 +500,20 @@ int main(int argc, char* argv[]) {
 
     RenderedText* rendered_text = load_rendered_text(data, font, color, renderer);
 
-    // create a rectangular surface and texture for highlighting 
+    // create a rectangular surface and texture for highlighting & blocking text
     SDL_Surface* highlight_surface = SDL_CreateRGBSurface(0,TEXT_RECT_W,TEXT_RECT_H,32,0,0,0,255);
+    SDL_Surface* block_surface = SDL_CreateRGBSurface(0,TEXT_RECT_W,TEXT_RECT_H,32,0,0,0,255);
 
     /*
      * set highlight color here in RGB format 0-255
     */
     SDL_FillRect(highlight_surface, NULL, SDL_MapRGB(highlight_surface->format,242,45,45));
+    SDL_FillRect(block_surface, NULL, SDL_MapRGB(block_surface->format,0,0,0));
 
     // create the texture
     SDL_Texture* highlight_texture = SDL_CreateTextureFromSurface(renderer, highlight_surface);
-    
+    SDL_Texture* block_texture = SDL_CreateTextureFromSurface(renderer, block_surface);
+
     // load gif icons into an array
     SDL_Texture* icons[NUM_ROWS];
     for(int i = 1; i < NUM_ROWS; i++) {
@@ -410,6 +529,64 @@ int main(int argc, char* argv[]) {
         sprintf(filename, "resources/gif/pokemon%s.gif", pokenum);
         SDL_Surface* temp_surface = IMG_Load(filename);
         icons[i] = SDL_CreateTextureFromSurface(renderer, temp_surface);
+        SDL_FreeSurface(temp_surface);
+    }
+
+    // type_array[i][1] & type_array[i][2] have the type index
+    SDL_Texture* types[TYPES];
+    for(int i = 0; i < TYPES; i++) {
+        char type[20];
+        switch (i) {
+            case BUG_TYPE:
+                sprintf(type, "bug");
+                break;
+            case DRAGON_TYPE:
+                sprintf(type, "dragon");
+                break;
+            case ELECTRIC_TYPE:
+                sprintf(type, "electric");
+                break;
+            case FIGHTING_TYPE:
+                sprintf(type, "fighting");
+                break;
+            case FIRE_TYPE:
+                sprintf(type, "fire");
+                break;
+            case FLYING_TYPE:
+                sprintf(type, "flying");
+                break;
+            case GHOST_TYPE:
+                sprintf(type, "ghost");
+                break;
+            case GRASS_TYPE:
+                sprintf(type, "grass");
+                break;
+            case GROUND_TYPE:
+                sprintf(type, "ground");
+                break;
+            case ICE_TYPE:
+                sprintf(type, "ice");
+                break;
+            case NORMAL_TYPE:
+                sprintf(type, "normal");
+                break;
+            case POISON_TYPE:
+                sprintf(type, "poison");
+                break;
+            case PSYCHIC_TYPE:
+                sprintf(type, "psychic");
+                break;
+            case ROCK_TYPE:
+                sprintf(type, "rock");
+                break;
+            case WATER_TYPE:
+                sprintf(type, "water");
+                break;
+        }
+        char filename[100];
+        sprintf(filename, "resources/types/%s.gif", type);
+        SDL_Surface* temp_surface = IMG_Load(filename);
+        types[i-1] = SDL_CreateTextureFromSurface(renderer, temp_surface); // assign the texture to types
         SDL_FreeSurface(temp_surface);
     }
 
@@ -613,11 +790,6 @@ int main(int argc, char* argv[]) {
                     // adjust sizing
                     col_w = 4;
 
-                    if (pokemon.types == 1) {
-                        sprintf(info_string + strlen(info_string), "Type: %s \n \n", pokemon.type1);
-                    } else {
-                        sprintf(info_string + strlen(info_string), "Types: %s\n             %s \n", pokemon.type1, pokemon.type2);
-                    }
                     sprintf(info_string + strlen(info_string),
                     " \n"
                     "Damage From\n"
@@ -682,9 +854,17 @@ int main(int argc, char* argv[]) {
                 SDL_RenderCopy(renderer, rendered_text[i].texture, NULL, &rect);
 
                 if (i == cursor_position) {
-                    // make a little box to cover the asterisk
-                    SDL_Rect highlight_rect = {LEFT_MARGIN, SCROLL_Y,TEXT_RECT_H,TEXT_RECT_H};
+                    // make a two little boxes to cover the " * No. XXX:"
+                    SDL_Rect block_rect = {LEFT_MARGIN, SCROLL_Y,NUM_CHARACTERS*FONT_SIZE,FONT_SIZE};
+                    SDL_RenderCopy(renderer, block_texture, NULL, &block_rect);
+                    SDL_Rect highlight_rect = {LEFT_MARGIN, 7 + SCROLL_Y,NUM_CHARACTERS*FONT_SIZE,TEXT_RECT_H};
                     SDL_RenderCopy(renderer, highlight_texture, NULL, &highlight_rect);
+
+                    // render type or types
+                    SDL_Rect type1_rect = {80, -9 + SCROLL_Y, 32, 16};
+                    SDL_RenderCopy(renderer, types[i], NULL, &block_rect);
+                    SDL_Rect type2_rect = {80, 7 + SCROLL_Y, 32, 16};
+
                     // add a circle
                     SDL_Rect circle_rect = {24, -18 + SCROLL_Y, 48, 48};
                     SDL_RenderCopy(renderer, circle, NULL, &circle_rect);
@@ -715,6 +895,9 @@ done:
     for(int i = 0; i < NUM_ROWS; i++) {
         SDL_DestroyTexture(icons[i]);
         SDL_DestroyTexture(full_pics[i]);
+    }
+    for (int i = 0; i < TYPES; i++) {
+        SDL_DestroyTexture(types[i]);
     }
 
     free_data(data);
