@@ -44,7 +44,7 @@ gcc -o pokedex pokedex_SDL.c -lSDL2 -lSDL2_ttf -lSDL2_image
 #define TEXT_R 255                   // default red value for text
 #define TEXT_G 255                  // default green value for text
 #define TEXT_B 255                 // default blue value for text
-#define TEXT_RECT_H 12                   // default height for the rectangle around text
+#define TEXT_RECT_H 14                   // default height for the rectangle around text
 #define TEXT_RECT_W WINDOW_WIDTH - LEFT_MARGIN      // default width for a rect
 #define SCROLL_Y 25 + (i - scroll_offset)*45            // the default y rendering position
 #define NUM_CHARACTERS 8            // how many characters to block on the cursor line
@@ -586,7 +586,7 @@ int main(int argc, char* argv[]) {
         char filename[100];
         sprintf(filename, "resources/types/%s.gif", type);
         SDL_Surface* temp_surface = IMG_Load(filename);
-        types[i-1] = SDL_CreateTextureFromSurface(renderer, temp_surface); // assign the texture to types
+        types[i] = SDL_CreateTextureFromSurface(renderer, temp_surface); // assign the texture to types
         SDL_FreeSurface(temp_surface);
     }
 
@@ -749,9 +749,9 @@ int main(int argc, char* argv[]) {
                     
                     // choose proper text by number of types
                     if (pokemon.types == 1) {
-                        sprintf(info_string + strlen(info_string), "Type: %s \n \n", pokemon.type1);
+                        sprintf(info_string + strlen(info_string), "Type: \n \n");
                     } else {
-                        sprintf(info_string + strlen(info_string), "Types: %s\n             %s\n", pokemon.type1, pokemon.type2);
+                        sprintf(info_string + strlen(info_string), "Types: \n \n");
                     }
                     sprintf(info_string + strlen(info_string), "Height: %.2fm \nWeight: %.2fkg\n \n", pokemon.height, pokemon.weight);
 
@@ -771,7 +771,7 @@ int main(int argc, char* argv[]) {
                         sprintf(info_string + strlen(info_string), "No Evolutions \n");
                     }
                     sprintf(info_string + strlen(info_string),
-                    "Capture Rate %d \n"
+                    "Capture Rate %d%% \n"
                     "Exp. Gain Speed: \n -> %s \n",
                     pokemon.capture_rate, pokemon.exp_speed);
                 }
@@ -812,6 +812,23 @@ int main(int argc, char* argv[]) {
                 // render a highlight bar as a backdrop for the top row
                 SDL_Rect highlight_rect = {LEFT_MARGIN - 3, 24, TEXT_RECT_W,TEXT_RECT_H};
                 SDL_RenderCopy(renderer, highlight_texture, NULL, &highlight_rect);
+
+                // render type icons for page 2
+                if (selected_page == 1) {
+                    // render type or types
+                    if (type_array[selected_position][0] == 2) { // two types
+                        int t1 = type_array[selected_position][1];
+                        int t2 = type_array[selected_position][2];
+                        SDL_Rect type1_rect = {120, 24 + SCROLL_Y, 48, 24};
+                        SDL_RenderCopy(renderer, types[t1], NULL, &type1_rect);
+                        SDL_Rect type2_rect = {125 + 48, 24 + SCROLL_Y, 48, 24};
+                        SDL_RenderCopy(renderer, types[t2], NULL, &type2_rect);
+                    } else {
+                        int t1 = type_array[selected_position][1];
+                        SDL_Rect type_rect = {105, 24 + SCROLL_Y, 48, 24};
+                        SDL_RenderCopy(renderer, types[t1], NULL, &type_rect);
+                    }
+                }
                 // The actual rendering of the information from the selected pokemon's line
                 for (int j = 0; j < line_count; j++) {
                     int split_count; // how many columns there are
@@ -864,21 +881,21 @@ int main(int argc, char* argv[]) {
                     if (type_array[i][0] == 2) {
                         int t1 = type_array[i][1];
                         int t2 = type_array[i][2];
-                        SDL_Rect type1_rect = {80, -9 + SCROLL_Y, 32, 16};
+                        SDL_Rect type1_rect = {100, -10 + SCROLL_Y, 32, 16};
                         SDL_RenderCopy(renderer, types[t1], NULL, &type1_rect);
-                        SDL_Rect type2_rect = {80, 7 + SCROLL_Y, 32, 16};
+                        SDL_Rect type2_rect = {100, 6 + SCROLL_Y, 32, 16};
                         SDL_RenderCopy(renderer, types[t2], NULL, &type2_rect);
                     } else {
                         int t1 = type_array[i][1];
-                        SDL_Rect type_rect = {80, -1 + SCROLL_Y, 32, 16};
+                        SDL_Rect type_rect = {100, -10 + SCROLL_Y, 32, 16};
                         SDL_RenderCopy(renderer, types[t1], NULL, &type_rect);
                     }
 
                     // add a circle
-                    SDL_Rect circle_rect = {24, -18 + SCROLL_Y, 48, 48};
+                    SDL_Rect circle_rect = {37, -18 + SCROLL_Y, 48, 48};
                     SDL_RenderCopy(renderer, circle, NULL, &circle_rect);
                     // render icon after text so it covers the icon a bit
-                    SDL_Rect icon_rect = {-5, -48 + SCROLL_Y, 80, 80};  
+                    SDL_Rect icon_rect = {10, -48 + SCROLL_Y, 80, 80};  
                     SDL_RenderCopy(renderer, icons[i], NULL, &icon_rect);
                 }
             }
