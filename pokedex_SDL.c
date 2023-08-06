@@ -198,14 +198,14 @@ void free_rendered_text(RenderedText* rendered_text) {
     free(rendered_text);
 }
 
-int*** load_types(char*** data) {
+int** load_types(char*** data) {
 
     // allocate memory for the data
-    int*** type_array = malloc(sizeof(int**) * NUM_ROWS);
+    int** type_array = malloc(sizeof(int*) * NUM_ROWS);
     for (int i = 0; i < NUM_ROWS; i++) {
-        type_array[i] = malloc(sizeof(int*) * 3);
-        for (int j = 0; j < 3; j++)
-            type_array[i][j] = malloc(sizeof(int));
+        type_array[i] = malloc(sizeof(int) * 3);
+        //for (int j = 0; j < 3; j++)
+        //    type_array[i][j] = malloc(sizeof(int));
     }
 
     for (int i = 0; i < NUM_ROWS; i++) {
@@ -215,35 +215,35 @@ int*** load_types(char*** data) {
                     type_array[i][field] = atoi(data[i][2]); // convert the "Types" column to an int and save
                     break;
                 case 1:
-                    if (data[i][3] == "bug") {
+                    if (strcmp(data[i][3], "bug") == 0) {
                         type_array[i][field] = BUG_TYPE;
-                    } else if (data[i][3] == "dragon") {
+                    } else if (strcmp(data[i][3], "dragon") == 0) {
                         type_array[i][field] = DRAGON_TYPE;
-                    } else if (data[i][3] == "electric") {
+                    } else if (strcmp(data[i][3], "electric") == 0) {
                         type_array[i][field] = ELECTRIC_TYPE;
-                    } else if (data[i][3] == "fighting") {
+                    } else if (strcmp(data[i][3], "fighting") == 0) {
                         type_array[i][field] = FIGHTING_TYPE;
-                    } else if (data[i][3] == "fire") {
+                    } else if (strcmp(data[i][3], "fire") == 0) {
                         type_array[i][field] = FIRE_TYPE;
-                    } else if (data[i][3] == "flying") {
+                    } else if (strcmp(data[i][3], "flying") == 0) {
                         type_array[i][field] = FLYING_TYPE;
-                    } else if (data[i][3] == "ghost") {
+                    } else if (strcmp(data[i][3], "ghost") == 0) {
                         type_array[i][field] = GHOST_TYPE;
-                    } else if (data[i][3] == "grass") {
+                    } else if (strcmp(data[i][3], "grass") == 0) {
                         type_array[i][field] = GRASS_TYPE;
-                    } else if (data[i][3] == "ground") {
+                    } else if (strcmp(data[i][3], "ground") == 0) {
                         type_array[i][field] = GROUND_TYPE;
-                    } else if (data[i][3] == "ice") {
+                    } else if (strcmp(data[i][3], "ice") == 0) {
                         type_array[i][field] = ICE_TYPE;
-                    } else if (data[i][3] == "normal") {
+                    } else if (strcmp(data[i][3], "normal") == 0) {
                         type_array[i][field] = NORMAL_TYPE;
-                    } else if (data[i][3] == "poison") {
+                    } else if (strcmp(data[i][3], "poison") == 0) {
                         type_array[i][field] = POISON_TYPE;
-                    } else if (data[i][3] == "psychic") {
+                    } else if (strcmp(data[i][3], "psychic") == 0) {
                         type_array[i][field] = PSYCHIC_TYPE;
-                    } else if (data[i][3] == "rock") {
+                    } else if (strcmp(data[i][3], "rock") == 0) {
                         type_array[i][field] = ROCK_TYPE;
-                    } else if (data[i][3] == "water") {
+                    } else if (strcmp(data[i][3], "water") == 0) {
                         type_array[i][field] = WATER_TYPE;
                     } else {
                         break;
@@ -253,35 +253,35 @@ int*** load_types(char*** data) {
                     if (type_array[i][0] == 1) {
                         type_array[i][field] = -1;
                     } else {
-                        if (data[i][4] == "bug") {
+                        if (strcmp(data[i][4], "bug") == 0) {
                             type_array[i][field] = BUG_TYPE;
-                        } else if (data[i][4] == "dragon") {
+                        } else if (strcmp(data[i][4], "dragon") == 0) {
                             type_array[i][field] = DRAGON_TYPE;
-                        } else if (data[i][4] == "electric") {
+                        } else if (strcmp(data[i][4], "electric") == 0) {
                             type_array[i][field] = ELECTRIC_TYPE;
-                        } else if (data[i][4] == "fighting") {
+                        } else if (strcmp(data[i][4], "fighting") == 0) {
                             type_array[i][field] = FIGHTING_TYPE;
-                        } else if (data[i][4] == "fire") {
+                        } else if (strcmp(data[i][4], "fire") == 0) {
                             type_array[i][field] = FIRE_TYPE;
-                        } else if (data[i][4] == "flying") {
+                        } else if (strcmp(data[i][4], "flying") == 0) {
                             type_array[i][field] = FLYING_TYPE;
-                        } else if (data[i][4] == "ghost") {
+                        } else if (strcmp(data[i][4], "ghost") == 0) {
                             type_array[i][field] = GHOST_TYPE;
-                        } else if (data[i][4] == "grass") {
+                        } else if (strcmp(data[i][4], "grass") == 0) {
                             type_array[i][field] = GRASS_TYPE;
-                        } else if (data[i][4] == "ground") {
+                        } else if (strcmp(data[i][4], "ground") == 0) {
                             type_array[i][field] = GROUND_TYPE;
-                        } else if (data[i][4] == "ice") {
+                        } else if (strcmp(data[i][4], "ice") == 0) {
                             type_array[i][field] = ICE_TYPE;
-                        } else if (data[i][4] == "normal") {
+                        } else if (strcmp(data[i][4], "normal") == 0) {
                             type_array[i][field] = NORMAL_TYPE;
-                        } else if (data[i][4] == "poison") {
+                        } else if (strcmp(data[i][4], "poison") == 0) {
                             type_array[i][field] = POISON_TYPE;
-                        } else if (data[i][4] == "psychic") {
+                        } else if (strcmp(data[i][4], "psychic") == 0) {
                             type_array[i][field] = PSYCHIC_TYPE;
-                        } else if (data[i][4] == "rock") {
+                        } else if (strcmp(data[i][4], "rock") == 0) {
                             type_array[i][field] = ROCK_TYPE;
-                        } else if (data[i][4] == "water") {
+                        } else if (strcmp(data[i][4], "water") == 0) {
                             type_array[i][field] = WATER_TYPE;
                         } else {
                             break;
@@ -467,7 +467,7 @@ int main(int argc, char* argv[]) {
 
     // Load Pokemon data
     char*** data = load_data();
-    int*** type_array = load_types(data);
+    int** type_array = load_types(data);
 
     // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -861,9 +861,18 @@ int main(int argc, char* argv[]) {
                     SDL_RenderCopy(renderer, highlight_texture, NULL, &highlight_rect);
 
                     // render type or types
-                    SDL_Rect type1_rect = {80, -9 + SCROLL_Y, 32, 16};
-                    SDL_RenderCopy(renderer, types[i], NULL, &block_rect);
-                    SDL_Rect type2_rect = {80, 7 + SCROLL_Y, 32, 16};
+                    if (type_array[i][0] == 2) {
+                        int t1 = type_array[i][1];
+                        int t2 = type_array[i][2];
+                        SDL_Rect type1_rect = {80, -9 + SCROLL_Y, 32, 16};
+                        SDL_RenderCopy(renderer, types[t1], NULL, &type1_rect);
+                        SDL_Rect type2_rect = {80, 7 + SCROLL_Y, 32, 16};
+                        SDL_RenderCopy(renderer, types[t2], NULL, &type2_rect);
+                    } else {
+                        int t1 = type_array[i][1];
+                        SDL_Rect type_rect = {80, -1 + SCROLL_Y, 32, 16};
+                        SDL_RenderCopy(renderer, types[t1], NULL, &type_rect);
+                    }
 
                     // add a circle
                     SDL_Rect circle_rect = {24, -18 + SCROLL_Y, 48, 48};
