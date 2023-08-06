@@ -745,8 +745,19 @@ int main(int argc, char* argv[]) {
                     
                 }
                 else if (selected_page == 1) {
-                    col_w = 2;
-                    
+                    // render type or types and icons
+                    if (type_array[selected_position][0] == 2) { // two types
+                        int t1 = type_array[selected_position][1];
+                        int t2 = type_array[selected_position][2];
+                        SDL_Rect type1_rect = {120, 24 + SCROLL_Y, 48, 24};
+                        SDL_RenderCopy(renderer, types[t1], NULL, &type1_rect);
+                        SDL_Rect type2_rect = {125 + 48, 24 + SCROLL_Y, 48, 24};
+                        SDL_RenderCopy(renderer, types[t2], NULL, &type2_rect);
+                    } else {
+                        int t1 = type_array[selected_position][1];
+                        SDL_Rect type_rect = {105, 24 + SCROLL_Y, 48, 24};
+                        SDL_RenderCopy(renderer, types[t1], NULL, &type_rect);
+                    }
                     // choose proper text by number of types
                     if (pokemon.types == 1) {
                         sprintf(info_string + strlen(info_string), "Type: \n \n");
@@ -777,8 +788,6 @@ int main(int argc, char* argv[]) {
                 }
 
                 else if (selected_page == 2) {
-                    col_w = 2;
-                    
                     sprintf(info_string + strlen(info_string),
                     "Base Total %d \nHP: %d \n \n"
                     "* Attack: %d \n* Defense: %d\n"
@@ -789,20 +798,33 @@ int main(int argc, char* argv[]) {
                 else if (selected_page == 3) {
                     // adjust sizing
                     col_w = 4;
-
                     sprintf(info_string + strlen(info_string),
-                    " \n"
                     "Damage From\n"
-                    " Water !col Fire !col Normal !col Ice \n"
-                    " %.2f !col %.2f !col %.2f !col %.2f \n"
-                    "Grass !col Electric !col Fight !col Poison \n"
-                    " %.2f !col %.2f !col %.2f !col %.2f \n"
-                    "Ground !col Flying !col Bug !col Psychic \n"
-                    " %.2f !col %.2f !col %.2f !col %.2f \n"
-                    " !col Rock !col Ghost !col Dragon\n"
-                    " %.2f !col %.2f !col %.2f\n \n",
-                    pokemon.water_dmg, pokemon.fire_dmg, pokemon.normal_dmg, pokemon.ice_dmg, pokemon.grass_dmg, pokemon.electric_dmg, pokemon.fight_dmg, pokemon.poison_dmg, pokemon.ground_dmg, pokemon.flying_dmg, pokemon.bug_dmg, pokemon.psychic_dmg, pokemon.rock_dmg, pokemon.ghost_dmg, pokemon.dragon_dmg);
-                    
+                    " \n"
+                    //" Water !col Fire !col Normal \n"
+                    "%.2f !col%.2f !col%.2f \n"
+                    " \n"
+                    //" Ice !col Grass !col Electric  \n"
+                    "%.2f !col%.2f !col%.2f \n"
+                    " \n"
+                    //" Fight !col Poison !col Ground !col  \n"
+                    "%.2f !col%.2f !col%.2f \n"
+                    " \n"
+                    //" Flying !col Bug !col Psychic !col \n"
+                    "%.2f !col%.2f !col%.2f \n"
+                    " \n"
+                    //"Rock !col Ghost !col Dragon \n"
+                    "%.2f !col%.2f !col%.2f\n \n",
+                    pokemon.bug_dmg, pokemon.dragon_dmg, pokemon.electric_dmg, pokemon.fight_dmg, pokemon.fire_dmg, pokemon.flying_dmg, pokemon.ghost_dmg, pokemon.grass_dmg, pokemon.ground_dmg, pokemon.ice_dmg, pokemon.normal_dmg, pokemon.poison_dmg, pokemon.psychic_dmg, pokemon.rock_dmg, pokemon.water_dmg);
+                    //each line is 45 px
+                    int type_cur = 0;
+                    for (int m = 0; (type_cur < 15) && (m < 5); m++) {
+                        for (int n = 0; (type_cur < 15) && (n < 3); n++) {
+                            SDL_Rect spv_type_rect = {42 + (32+72)*n, 67 + 32*m, 32, 16};
+                            SDL_RenderCopy(renderer, types[type_cur], NULL, &spv_type_rect);
+                            type_cur++;
+                        }
+                    }
                 }
                 // splitting the info_string into lines below
                 // trying to do a little functional fix to make new lines work with SDL by typing '\n'
@@ -813,22 +835,6 @@ int main(int argc, char* argv[]) {
                 SDL_Rect highlight_rect = {LEFT_MARGIN - 3, 24, TEXT_RECT_W,TEXT_RECT_H};
                 SDL_RenderCopy(renderer, highlight_texture, NULL, &highlight_rect);
 
-                // render type icons for page 2
-                if (selected_page == 1) {
-                    // render type or types
-                    if (type_array[selected_position][0] == 2) { // two types
-                        int t1 = type_array[selected_position][1];
-                        int t2 = type_array[selected_position][2];
-                        SDL_Rect type1_rect = {120, 24 + SCROLL_Y, 48, 24};
-                        SDL_RenderCopy(renderer, types[t1], NULL, &type1_rect);
-                        SDL_Rect type2_rect = {125 + 48, 24 + SCROLL_Y, 48, 24};
-                        SDL_RenderCopy(renderer, types[t2], NULL, &type2_rect);
-                    } else {
-                        int t1 = type_array[selected_position][1];
-                        SDL_Rect type_rect = {105, 24 + SCROLL_Y, 48, 24};
-                        SDL_RenderCopy(renderer, types[t1], NULL, &type_rect);
-                    }
-                }
                 // The actual rendering of the information from the selected pokemon's line
                 for (int j = 0; j < line_count; j++) {
                     int split_count; // how many columns there are
@@ -840,7 +846,8 @@ int main(int argc, char* argv[]) {
                         // int column_buffer = (k > 0) ? 50 : 0;
                         RenderedText cols = render_text(columns[k], font, color, renderer);
                         // the first box is our x position, which is what gets changed for the columns
-                        SDL_Rect rect = {LEFT_MARGIN + k*((WINDOW_WIDTH - 100)/col_w), SPV_Y_OFFSET + j * cols.surface->h, cols.surface->w, cols.surface->h};
+                        //SDL_Rect rect = {LEFT_MARGIN + k*((WINDOW_WIDTH)/col_w), SPV_Y_OFFSET + j * cols.surface->h, cols.surface->w, cols.surface->h};
+                        SDL_Rect rect = {LEFT_MARGIN + k*(WINDOW_WIDTH/split_count), SPV_Y_OFFSET + j * cols.surface->h, cols.surface->w, cols.surface->h};
                         SDL_RenderCopy(renderer, cols.texture, NULL, &rect);
                         SDL_FreeSurface(cols.surface);
                         SDL_DestroyTexture(cols.texture);
