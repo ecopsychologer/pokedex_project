@@ -8,8 +8,6 @@ gcc -o pokedex pokedex_SDL.c -lSDL2 -lSDL2_ttf -lSDL2_image
  * To do:
  * 
  * ~ Now
- * - change font to black
- * - add white rectangles as text boxes behind text
  * - add one time animation to single pokemon view
  * - add consistent animation to the icon of the pokemon in the list view
  * 
@@ -888,13 +886,13 @@ int main(int argc, char* argv[]) {
                     if (type_array[i][0] == 2) {
                         int t1 = type_array[i][1];
                         int t2 = type_array[i][2];
-                        SDL_Rect type1_rect = {100, -10 + SCROLL_Y, 32, 16};
+                        SDL_Rect type1_rect = {92, -18 + SCROLL_Y, 48, 24};
                         SDL_RenderCopy(renderer, types[t1], NULL, &type1_rect);
-                        SDL_Rect type2_rect = {100, 6 + SCROLL_Y, 32, 16};
+                        SDL_Rect type2_rect = {92, 6 + SCROLL_Y, 48, 24};
                         SDL_RenderCopy(renderer, types[t2], NULL, &type2_rect);
                     } else {
                         int t1 = type_array[i][1];
-                        SDL_Rect type_rect = {100, -10 + SCROLL_Y, 32, 16};
+                        SDL_Rect type_rect = {92, -18 + SCROLL_Y, 48, 24};
                         SDL_RenderCopy(renderer, types[t1], NULL, &type_rect);
                     }
 
